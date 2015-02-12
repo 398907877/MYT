@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryCreditsRecordCountByCondition">
+		SELECT count (*) FROM ZiXun_CreditsRecord where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryCreditsRecordListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by CR_ID desc) rowId,* FROM ZiXun_CreditsRecord where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertCreditsRecord">	INSERT INTO ZiXun_CreditsRecord(CR_ID,ASK_QuesID,ASK_DoctorAccountID,CR_Credits,CR_CreditsType,CR_CreateTime,ASK_DoctorID)VALUES(?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateCreditsRecordByCondition">		UPDATE ZiXun_CreditsRecord SET @condition WHERE CR_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

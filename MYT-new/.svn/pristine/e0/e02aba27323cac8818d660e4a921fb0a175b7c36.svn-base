@@ -1,0 +1,65 @@
+package com.yihu.myt.util;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.Enumeration;
+import java.util.Map;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+
+public class PostClient {
+	
+	public  String url="http://f1.yihuimg.com/TFS/TFSServlet";
+	
+	
+	public String dopost(String  file,Map<String, String>  para) throws HttpException, IOException{
+
+		
+		File temp = new File(file);
+		
+		PostMethod postMethod = new PostMethod(url);
+		Part[]  parts = { new FilePart("file",temp)};
+		
+		
+		for (String  key : para.keySet()) {
+			System.out.println("key"+key);
+			System.out.println("value"+para.get(key));
+			postMethod.addRequestHeader(key, para.get(key));
+		}
+		
+		
+		for (int i = 0; i < parts.length; i++) {
+			
+		}   
+		
+		
+		
+		postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
+		
+		
+		
+		HttpClient client = new HttpClient();
+		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
+		client.executeMethod(postMethod);
+		byte[] bs = postMethod.getResponseBody();
+		String b = new String(bs);
+		System.out.println(b);
+		
+		
+		return   null;
+		
+		
+		
+		
+	}
+	
+	
+
+}

@@ -1,0 +1,2833 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+	<Sqls>
+		<!--查询记录数 -->
+		<Sql name="queryQuesMainCountByCondition">
+			SELECT count (*) FROM ZiXun_QuesMain where 1=1
+			@condition
+		</Sql>
+    <!--根据条件分页查询记录 -->
+
+
+		<Sql name="queryQuesMainListByCondition">
+			SELECT * from (   SELECT  * from (  SELECT ROW_NUMBER() OVER( order by
+			QUESMAIN_CreateTime desc ) rowId,*
+			FROM ZiXun_QuesMain where 1=1
+			@condition    ) as  tt LEFT JOIN ZIXUN_OpenAuth jj on tt.quesmain_id=jj.QuesMainId )
+			as a where 1=1 @page    ORDER BY rowid  asc
+		</Sql>
+		<Sql name="queryQuestionLibraryListByCondition">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by
+			QUESMAIN_CreateTime desc ) rowId,*
+			FROM ZiXun_QuestionLibrary where
+			1=1 @condition )
+			as a where 1=1 @page
+		</Sql>
+		
+		
+    <!--插入 -->
+		<Sql name="insertQuesMain"> INSERT INTO
+			ZiXun_QuesMain(QUESMAIN_ID,QUESMAIN_CreateTime,QUESMAIN_ExpiredTime,ASK_UserID,ASK_UserName,QUESMAIN_Title,QUESMAIN_Content,ASK_PatientID,ASK_DepartID,QUESMAIN_IsOpen,QUESMAIN_Status,QUESMAIN_Platform,QD_CheckStatus,QD_Reason,QD_RecordExpiredTime,QD_CheckTime,QD_CheckManID,ASK_DoctorID,QD_Status,QD_HandleID,QD_AskedCount,QD_ClickCount,QD_Price,QD_SourceType,QD_Credits,QD_Ating,QD_ShowStatus,QD_IsReplay,QD_OrdersId,QD_OrdersStatus,QD_SupplyContent,QD_DocReplayCount,QD_FilesCount,QD_DeptIDS,QD_DeptTwoIDS,QD_DiseaseIDS,QD_AskDeptID,QD_IsUserReplay,QD_IsAppAttend,QD_DiseaseStr,ASK_SourceAskID,QD_QuesType,QD_DocFreeID,QD_TipPhone,QD_CheckOperatorID,QD_CheckOperatorName)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+		</Sql>
+    <!--根据条件更新 -->
+		<!--update sql -->
+		<Sql name="updateQuesMainByCondition"> UPDATE ZiXun_QuesMain SET @condition WHERE QUESMAIN_ID
+			= ?
+		</Sql>
+		<Sql name="updateQMainByCondition">
+			UPDATE ZiXun_QuesMain SET @condition WHERE QUESMAIN_ID
+			=? and ASK_UserID = ?
+		</Sql>
+
+		<Sql name="querySameQueCont">
+			SELECT count (*) FROM ZiXun_QuesMain where 1=1
+			@condition
+		</Sql>
+		<Sql name="getOverFreeQues">
+			SELECT QUESMAIN_ID, ASK_DoctorID, QUESMAIN_Content,
+			ASK_UserID
+			FROM dbo.ZiXun_QuesMain
+			WHERE QUESMAIN_Status = 1
+			AND
+			QD_CheckStatus = 1
+			AND QD_Status = 0
+			AND QD_SourceType = 1
+			AND
+			QD_DocReplayCount > 0
+			AND QD_OrdersStatus = 0
+			AND GETDATE() >
+			QUESMAIN_ExpiredTime
+			AND QD_IsReplay = 1
+		</Sql>
+
+		<Sql name="getOverQues">
+			SELECT a.QUESMAIN_ID ,
+			a.ASK_UserID ,
+			a.QD_Price ,
+			a.ASK_DoctorID,
+			a.qd_docfreeid
+			FROM ZiXun_QuesMain AS a
+			WHERE a.QUESMAIN_Status = 1
+			AND
+			a.QD_CheckStatus = 1
+			AND a.QD_Status = 0
+			AND a.QD_IsReplay = 1
+			AND
+			a.QD_IsUserReplay = 0
+			AND a.QD_DocReplayCount > 0
+			AND ( a.QD_SourceType
+			= 0
+			OR a.QD_SourceType = 2
+			)
+			AND ( ( a.QD_OrdersStatus = 0
+			OR
+			a.QD_OrdersStatus = 2
+			)
+			OR ( a.QD_Price = 0
+			AND a.QD_OrdersStatus = 5
+			)
+			)
+			AND GETDATE() > a.QUESMAIN_ExpiredTime
+			UNION
+			SELECT a.QUESMAIN_ID ,
+			a.ASK_UserID ,
+			a.QD_Price ,
+			a.ASK_DoctorID,
+			a.qd_docfreeid
+			FROM ZiXun_QuesMain AS a
+			INNER JOIN dbo.ZiXun_QuesReplyMutual AS m ON a.QUESMAIN_ID = m.queID
+			WHERE
+			a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND a.QD_Status = 0
+			AND a.QD_IsReplay = 1
+			AND a.QD_IsUserReplay = 0
+			AND a.QD_DocReplayCount
+			> 0
+			AND ( a.QD_SourceType = 0
+			OR a.QD_SourceType = 2
+			)
+			AND ( (
+			a.QD_OrdersStatus = 0
+			OR a.QD_OrdersStatus = 2
+			)
+			OR ( a.QD_Price = 0
+			AND
+			a.QD_OrdersStatus = 5
+			)
+			)
+			AND m.replyType = 0
+			AND GETDATE() > DATEADD(Hh,
+			24,
+			m.lastUpdateTime)
+		</Sql>
+		<!-- SELECT a.QUESMAIN_ID, a.ASK_UserID, a.QD_Price, a.ASK_DoctorID FROM 
+			ZiXun_QuesMain AS a WHERE a.QUESMAIN_Status = 1 AND a.QD_CheckStatus = 1 
+			AND a.QD_Status = 0 AND a.QD_IsReplay = 1 AND a.QD_IsUserReplay = 0 AND a.QD_DocReplayCount 
+			> 0 AND (a.QD_SourceType = 0 OR a.QD_SourceType = 2) AND ((a.QD_OrdersStatus 
+			= 0 OR a.QD_OrdersStatus = 2 ) or ( a.QD_Price=0 and a.QD_OrdersStatus = 
+			5)) AND GETDATE() > a.QUESMAIN_ExpiredTime -->
+		<Sql name="getOverBY12Hour">
+			SELECT a.QUESMAIN_ID, a.ASK_UserID, a.QD_Price,
+			a.ASK_DoctorID
+			FROM ZiXun_QuesMain AS a INNER JOIN
+			dbo.ZiXun_QuesReplyMutual AS m ON
+			a.QUESMAIN_ID = m.queID
+			WHERE
+			a.QUESMAIN_Status = 1
+			AND
+			a.QD_CheckStatus = 1
+			AND a.QD_Status = 0
+			AND
+			a.QD_IsReplay = 1
+			AND
+			a.QD_IsUserReplay = 0
+			AND a.QD_DocReplayCount > 0
+			AND (a.QD_SourceType
+			= 0 OR a.QD_SourceType = 2)
+			AND
+			((a.QD_OrdersStatus = 0 OR
+			a.QD_OrdersStatus = 2 ) or ( a.QD_Price=0
+			and a.QD_OrdersStatus = 5))
+			AND m.replyType = 0
+			AND
+			dateadd(Hh,12,m.lastUpdateTime) > GETDATE()
+		</Sql>
+		<Sql name="getReportList">
+			SELECT *
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN
+			dbo.VWeb_Base_Doctor AS b ON a.ASK_DoctorID = b.BaseDoctorID
+			WHERE
+			a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND ( a.QD_Status = 1
+			OR
+			a.QD_Status = 2
+			)
+			AND ( a.QD_OrdersStatus = 0
+			OR a.QD_OrdersStatus = 2
+			)
+			and b.main = 1
+			@condition
+			ORDER BY QUESMAIN_ID DESC
+		</Sql>
+		<Sql name="getReportListCount">
+			SELECT count(*)
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN
+			dbo.VWeb_Base_Doctor AS b ON a.ASK_DoctorID = b.BaseDoctorID
+			WHERE
+			a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND ( a.QD_Status = 1
+			OR
+			a.QD_Status = 2
+			)
+			AND ( a.QD_OrdersStatus = 0
+			OR a.QD_OrdersStatus = 2
+			)
+			and b.main = 1
+			@condition
+
+		</Sql>
+		<Sql name="queryQuesCountForSendSMS">
+			SELECT COUNT(*) as quesCount, ASK_DoctorID as doctoruid
+			FROM
+			dbo.ZiXun_QuesMain
+			WHERE CONVERT(CHAR(10), GETDATE(), 120)
+			+ '
+			09:00:00.000' > QUESMAIN_CreateTime
+			AND QUESMAIN_CreateTime > CONVERT(CHAR(10), GETDATE() - 1, 120)
+			+ '
+			22:00:00.000'
+			AND QD_SourceType = 0 AND QD_DocReplayCount = 0
+			AND
+			(QD_OrdersStatus = 2 OR QD_OrdersStatus = 0)
+			@condition
+			GROUP BY ASK_DoctorID
+		</Sql>
+
+		<Sql name="queryOverQuesCont">SELECT COUNT(*) FROM dbo.ZiXun_QuesMain WHERE (QD_Status
+			=1 OR QD_Status=2 ) @condition
+		</Sql>
+		<Sql name="queryHvaeQuesCont">SELECT COUNT(*) FROM dbo.ZiXun_QuesMain WHERE 1= 1
+			@condition
+		</Sql>
+		<Sql name="querCountAnswerQus">SELECT COUNT(*) FROM dbo.ZiXun_QuesMain WHERE
+			QUESMAIN_Status = 1 AND QD_CheckStatus =1 AND ( ASK_DoctorID = 0 OR
+			(ASK_DoctorID > 0 AND DATEDIFF(MINUTE,QD_RecordExpiredTime,GETDATE())
+			> 0 AND
+			QD_DocReplayCount=0) ) @condition
+		</Sql>
+		<Sql name="querCountDCAnswerQus">SELECT COUNT(*) FROM dbo.ZiXun_QuesMain WHERE
+			QUESMAIN_Status = 1 AND QD_CheckStatus =1
+			AND DATEADD(MINUTE, 10,
+			QD_RecordExpiredTime) > GETDATE() AND
+			QD_DocReplayCount=0 @condition
+		</Sql>
+
+		<Sql name="queryTeamCont">SELECT ASK_DoctorID as doctorUid ,
+			COUNT(1) as teamCount
+			FROM dbo.ZiXun_QuesMain where 1=1 @condition and
+			CONVERT(CHAR(7),
+			QUESMAIN_CreateTime, 120) = ?
+			group by ASK_DoctorID
+		</Sql>
+		<Sql name="queryQuesAndPatient">
+			SELECT * FROM ZiXun_QuesMain AS q
+			INNER JOIN
+			dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			WHERE 1 = 1
+			@condition
+		</Sql>
+		<Sql name="queryDoctorList">
+			SELECT *
+			FROM ( SELECT ROW_NUMBER() OVER ( @orderBy )
+			rowId ,
+			( SELECT CASE WHEN COUNT(c.REPLY_CreateTime) > 0
+			THEN
+			MAX(c.REPLY_CreateTime)
+			ELSE q.QUESMAIN_CreateTime
+			END
+			FROM
+			dbo.ZiXun_Reply AS c
+			WHERE c.ASK_QuesID = q.QUESMAIN_ID
+			AND
+			c.REPLY_UserType = 2
+			AND c.REPLY_Status = 1
+			AND c.REPLY_CheckStatus = 1
+			) AS qd_createTime,
+			CASE WHEN q.QD_DocReplayCount>0 THEN '已回复' ELSE
+			'等待回复' END AS replyTitle,
+			CASE WHEN q.QD_SourceType = 1 THEN '免费咨询'
+			ELSE '指定咨询' END AS sourceType,
+			CASE WHEN PATIENT_Name IS NULL OR
+			PATIENT_Name = '' THEN '匿名' ELSE
+			PATIENT_Name END AS ptName,
+			CASE WHEN
+			r.replyType = 0 THEN r.replyCount ELSE 0 END as rpCount,
+			q.QD_SourceType,
+			q.QD_AskDeptID,q.QD_RecordExpiredTime,q.QUESMAIN_CreateTime,p.ASK_ProvinceID,q.QD_QuesType,q.QD_DocFreeID,q.QUESMAIN_ID,q.QUESMAIN_Content,q.QD_ShowStatus,p.ASK_ProvinceName,p.ASK_CityName,p.PATIENT_Sex,p.PATIENT_Birth
+			FROM ZiXun_QuesMain AS q
+			INNER JOIN dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			LEFT JOIN dbo.ZiXun_QuesReplyMutual AS
+			r ON r.queID = q.QUESMAIN_ID
+			WHERE 1 = 1
+			@condition
+			) AS a
+			WHERE 1 = 1
+			@page
+			@c
+			ORDER BY QUESMAIN_CreateTime DESC
+		</Sql>
+		<Sql name="queryDoctorQuestionLibraryList">
+			SELECT *
+			FROM ( SELECT ROW_NUMBER() OVER ( @orderBy )
+			rowId ,
+			( SELECT CASE WHEN COUNT(c.REPLY_CreateTime) > 0
+			THEN
+			MAX(c.REPLY_CreateTime)
+			ELSE q.QUESMAIN_CreateTime
+			END
+			FROM
+			dbo.ZiXun_Reply AS c
+			WHERE c.ASK_QuesID = q.QUESMAIN_ID
+			AND
+			c.REPLY_UserType = 2
+			AND c.REPLY_Status = 1
+			AND c.REPLY_CheckStatus = 1
+			) AS qd_createTime,
+			CASE WHEN q.QD_DocReplayCount>0 THEN '已回复' ELSE
+			'等待回复' END AS replyTitle,
+			CASE WHEN q.QD_SourceType = 1 THEN '免费咨询'
+			ELSE '指定咨询' END AS sourceType,
+			CASE WHEN PATIENT_Name IS NULL OR
+			PATIENT_Name = '' THEN '匿名' ELSE
+			PATIENT_Name END AS ptName,
+			CASE WHEN
+			r.replyType = 0 THEN r.replyCount ELSE 0 END as rpCount,
+			q.QD_SourceType,
+			q.QD_RecordExpiredTime,q.QUESMAIN_CreateTime,p.ASK_ProvinceID,q.QD_QuesType,q.QD_DocFreeID,q.QUESMAIN_ID,q.QUESMAIN_Content,q.QD_ShowStatus,p.ASK_ProvinceName,p.ASK_CityName,p.PATIENT_Sex,p.PATIENT_Birth
+			FROM ZiXun_QuestionLibrary AS q
+			INNER JOIN dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			LEFT JOIN dbo.ZiXun_QuesReplyMutual AS
+			r ON r.queID = q.QUESMAIN_ID
+			WHERE 1 = 1
+			@condition
+			) AS a
+			WHERE 1 = 1
+			@page
+			@c
+		</Sql>
+
+		<Sql name="queryQuestionLibraryList">
+			SELECT *
+			FROM ( SELECT ROW_NUMBER() OVER ( @orderBy )
+			rowId ,
+			( SELECT CASE WHEN COUNT(c.REPLY_CreateTime) > 0
+			THEN
+			MAX(c.REPLY_CreateTime)
+			ELSE q.QUESMAIN_CreateTime
+			END
+			FROM
+			dbo.ZiXun_Reply AS c
+			WHERE c.ASK_QuesID = q.QUESMAIN_ID
+			AND
+			c.REPLY_UserType = 2
+			AND c.REPLY_Status = 1
+			AND c.REPLY_CheckStatus = 1
+			) AS qd_createTime,
+			CASE WHEN q.QD_DocReplayCount>0 THEN '已回复' ELSE
+			'等待回复' END AS replyTitle,
+			CASE WHEN q.QD_SourceType = 1 THEN '免费咨询'
+			ELSE '指定咨询' END AS sourceType,
+			CASE WHEN PATIENT_Name IS NULL OR
+			PATIENT_Name = '' THEN '匿名' ELSE
+			PATIENT_Name END AS ptName,
+			q.QD_SourceType,
+			q.QD_RecordExpiredTime,q.QUESMAIN_CreateTime,p.ASK_ProvinceID,q.QD_QuesType,q.QD_DocFreeID,q.QUESMAIN_ID,q.QUESMAIN_Content,q.QD_ShowStatus,p.ASK_ProvinceName,p.ASK_CityName,p.PATIENT_Sex,p.PATIENT_Birth,q.QD_DocReplayCount
+			FROM ZiXun_QuestionLibrary AS q
+			INNER JOIN dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			WHERE 1 = 1
+			@condition
+		
+			) AS a
+			WHERE 1 = 1
+			@page
+			@c
+		</Sql>
+		<Sql name="queryQuestionLibraryListCount">
+			SELECT count(*)
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER
+			BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			( SELECT CASE WHEN
+			COUNT(c.REPLY_CreateTime) > 0
+			THEN MAX(c.REPLY_CreateTime)
+			ELSE
+			q.QUESMAIN_CreateTime
+			END
+			FROM dbo.ZiXun_Reply AS c
+			WHERE c.ASK_QuesID =
+			q.QUESMAIN_ID
+			AND c.REPLY_UserType = 2
+			AND c.REPLY_Status = 1
+			AND
+			c.REPLY_CheckStatus = 1
+			) AS qd_createTime,
+			q.QUESMAIN_CreateTime,p.ASK_ProvinceID,q.QD_QuesType,q.QD_DocFreeID,q.QUESMAIN_ID,q.QUESMAIN_Content,q.QD_ShowStatus,p.ASK_ProvinceName,p.ASK_CityName,p.PATIENT_Sex,p.PATIENT_Birth
+			FROM ZiXun_QuestionLibrary AS q
+			INNER JOIN dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			WHERE 1 = 1
+			@condition
+			) AS a
+			WHERE 1 = 1
+			@c
+		</Sql>
+		<Sql name="queryDoctorListCount">
+			SELECT count(*)
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER
+			BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			( SELECT CASE WHEN
+			COUNT(c.REPLY_CreateTime) > 0
+			THEN MAX(c.REPLY_CreateTime)
+			ELSE
+			q.QUESMAIN_CreateTime
+			END
+			FROM dbo.ZiXun_Reply AS c
+			WHERE c.ASK_QuesID =
+			q.QUESMAIN_ID
+			AND c.REPLY_UserType = 2
+			AND c.REPLY_Status = 1
+			AND
+			c.REPLY_CheckStatus = 1
+			) AS qd_createTime,
+			q.QUESMAIN_CreateTime,p.ASK_ProvinceID,q.QD_QuesType,q.QD_DocFreeID,q.QUESMAIN_ID,q.QUESMAIN_Content,q.QD_ShowStatus,p.ASK_ProvinceName,p.ASK_CityName,p.PATIENT_Sex,p.PATIENT_Birth
+			FROM ZiXun_QuesMain AS q
+			INNER JOIN dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			WHERE 1 = 1
+			@condition
+			) AS a
+			WHERE 1 = 1
+			@c
+		</Sql>
+		<Sql name="queryDoctorQuestionLibraryListCount">
+			SELECT count(*)
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER
+			BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			( SELECT CASE WHEN
+			COUNT(c.REPLY_CreateTime) > 0
+			THEN MAX(c.REPLY_CreateTime)
+			ELSE
+			q.QUESMAIN_CreateTime
+			END
+			FROM dbo.ZiXun_Reply AS c
+			WHERE c.ASK_QuesID =
+			q.QUESMAIN_ID
+			AND c.REPLY_UserType = 2
+			AND c.REPLY_Status = 1
+			AND
+			c.REPLY_CheckStatus = 1
+			) AS qd_createTime,
+			q.QUESMAIN_CreateTime,p.ASK_ProvinceID,q.QD_QuesType,q.QD_DocFreeID,q.QUESMAIN_ID,q.QUESMAIN_Content,q.QD_ShowStatus,p.ASK_ProvinceName,p.ASK_CityName,p.PATIENT_Sex,p.PATIENT_Birth
+			FROM ZiXun_QuestionLibrary AS q
+			INNER JOIN dbo.ZiXun_Patient AS p ON
+			q.ASK_PatientID = p.PATIENT_ID
+			WHERE 1 = 1
+			@condition
+			) AS a
+			WHERE 1 = 1
+			@c
+		</Sql>
+		<Sql name="quesDoctorCheckList">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by
+			QUESMAIN_CreateTime desc )
+			rowId,*
+			FROM ZiXun_QuesMain where 1=1
+			AND QUESMAIN_Status = 1
+			AND QD_SourceType = 1
+			AND QD_Status = 0
+			@condition )
+			as a where 1=1 @page
+		</Sql>
+		<Sql name="quesDoctorCheckListCount">
+			SELECT count(*) from (SELECT ROW_NUMBER() OVER( order by
+			QUESMAIN_CreateTime desc ) rowId,*
+			FROM ZiXun_QuesMain where 1=1
+			AND
+			QUESMAIN_Status = 1
+			AND QD_SourceType = 1
+			AND QD_Status = 0
+			@condition )
+			as a where 1=1
+		</Sql>
+		<Sql name="quesReturnList">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by
+			QUESMAIN_CreateTime desc )
+			rowId,*
+			FROM ZiXun_QuesMain where QD_Status = 5
+			@condition )
+			as a where
+			1=1 @page
+		</Sql>
+
+		<Sql name="quesReturnListCount">
+			SELECT count(*) from (SELECT ROW_NUMBER() OVER( order by
+			QUESMAIN_CreateTime desc ) rowId,*
+			FROM ZiXun_QuesMain where QD_Status
+			= 5
+			@condition )
+			as a where 1=1
+		</Sql>
+		<Sql name="quesOverTimeList">
+			SELECT *
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			*
+			FROM ( SELECT a.* ,
+			c.ASK_ProvinceName ,
+			c.ASK_CityName ,
+			c.PATIENT_Name ,
+			c.PATIENT_Sex ,
+			c.PATIENT_Birth
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN ZiXun_Patient AS c ON a.ASK_PatientID = c.PATIENT_ID
+			WHERE a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND a.QD_DocReplayCount = 0
+			AND a.QD_HandleID = 1
+			AND a.QD_Status = 0
+			AND a.QD_SourceType = 0
+			AND ( QD_OrdersStatus = 0
+			OR QD_OrdersStatus = 2
+			OR QD_OrdersStatus = 5
+			)
+			AND DATEDIFF(MINUTE, a.QUESMAIN_ExpiredTime,
+			GETDATE()) > 0
+			AND ( a.QD_RecordExpiredTime IS NULL
+			OR DATEDIFF(MINUTE,
+			a.QD_RecordExpiredTime,
+			GETDATE()) > 0
+			)
+			UNION ALL
+			SELECT a.* ,
+			c.ASK_ProvinceName ,
+			c.ASK_CityName ,
+			c.PATIENT_Name ,
+			c.PATIENT_Sex ,
+			c.PATIENT_Birth
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN ZiXun_Patient AS c ON a.ASK_PatientID = c.PATIENT_ID
+			WHERE a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND a.QD_DocReplayCount = 0
+			AND a.QD_Status = 0
+			AND a.QD_SourceType = 1
+			AND QD_OrdersStatus = 0
+			AND ( a.QD_RecordExpiredTime IS NULL
+			OR DATEDIFF(MINUTE,
+			a.QD_RecordExpiredTime,
+			GETDATE()) > 0
+			)
+			) AS t where 1=1 @condition
+			) AS t1
+			WHERE 1 = 1 @page
+		</Sql>
+		<Sql name="quesOverTimeTearmList">
+			SELECT *
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			*
+			FROM ( SELECT a.* ,
+			c.ASK_ProvinceName ,
+			c.ASK_CityName ,
+			c.PATIENT_Name ,
+			c.PATIENT_Sex ,
+			c.PATIENT_Birth
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN ZiXun_Patient AS c ON a.ASK_PatientID = c.PATIENT_ID
+			) AS t where 1=1 @condition
+			) AS t1
+			WHERE 1 = 1 @page
+		</Sql>
+		<Sql name="quesOverTimeListCount">
+			SELECT count(*)
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			*
+			FROM ( SELECT a.* ,
+			c.ASK_ProvinceName ,
+			c.ASK_CityName ,
+			c.PATIENT_Name ,
+			c.PATIENT_Sex ,
+			c.PATIENT_Birth
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN ZiXun_Patient AS c ON a.ASK_PatientID = c.PATIENT_ID
+			WHERE a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND a.QD_DocReplayCount = 0
+			AND a.QD_HandleID = 1
+			AND a.QD_Status = 0
+			AND a.QD_SourceType = 0
+			AND ( QD_OrdersStatus = 0
+			OR QD_OrdersStatus = 2
+			OR QD_OrdersStatus = 5
+			)
+			AND DATEDIFF(MINUTE, a.QUESMAIN_ExpiredTime,
+			GETDATE()) > 0
+			AND ( a.QD_RecordExpiredTime IS NULL
+			OR DATEDIFF(MINUTE,
+			a.QD_RecordExpiredTime,
+			GETDATE()) > 0
+			)
+			UNION ALL
+			SELECT a.* ,
+			c.ASK_ProvinceName ,
+			c.ASK_CityName ,
+			c.PATIENT_Name ,
+			c.PATIENT_Sex ,
+			c.PATIENT_Birth
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN ZiXun_Patient AS c ON a.ASK_PatientID = c.PATIENT_ID
+			WHERE a.QUESMAIN_Status = 1
+			AND a.QD_CheckStatus = 1
+			AND a.QD_DocReplayCount = 0
+			AND a.QD_Status = 0
+			AND a.QD_SourceType = 1
+			AND QD_OrdersStatus = 0
+			AND ( a.QD_RecordExpiredTime IS NULL
+			OR DATEDIFF(MINUTE,
+			a.QD_RecordExpiredTime,
+			GETDATE()) > 0
+			)
+			) AS t where 1=1 @condition
+			) AS t1
+			WHERE 1 = 1
+		</Sql>
+		<Sql name="quesOverTimeTeamListCount">
+			SELECT count(*)
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC )
+			rowId ,
+			*
+			FROM ( SELECT a.* ,
+			c.ASK_ProvinceName ,
+			c.ASK_CityName ,
+			c.PATIENT_Name ,
+			c.PATIENT_Sex ,
+			c.PATIENT_Birth
+			FROM dbo.ZiXun_QuesMain AS a
+			INNER JOIN ZiXun_Patient AS c ON a.ASK_PatientID = c.PATIENT_ID
+			) AS t where 1=1 @condition
+			) AS t1
+			WHERE 1 = 1
+		</Sql>		
+
+		<Sql name="quesListForCheckTeam">
+			<!-- SELECT * FROM (SELECT ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC
+			) rowId ,
+			q1.*,d1.*,p1.PATIENT_Birth,p1.ASK_CityName,p1.ASK_ProvinceName,p1.PATIENT_Name,p1.PATIENT_Sex
+			FROM dbo.ZiXun_QuesMain AS q1
+			left JOIN ( SELECT DoctorUid ,
+			DoctorName,
+			HosName ,
+			DeptName
+			FROM v_myt_doctorService
+			where main = 1
+			) AS d1 ON d1.DoctorUid = q1.ASK_DoctorID
+			left JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			where 1=1 @condition
+			) AS t1 where 1=1 @page -->
+			
+		SELECT  *
+				FROM    ( SELECT    ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC ) rowId ,
+				                    q1.*,
+				                    d2.DoctorName ,
+				                    d2.HosName ,
+				                    d2.DeptName ,
+				                    d2.ProvinceID AS dcProvinceID,
+				                    d1.DoctorName AS ansDoctorName,
+				                    d1.HosName AS ansHosName,
+				                    d1.DeptName  AS ansDeptName,
+				                    d1.ProvinceID AS ansProvinceID,
+				                    p1.PATIENT_Birth ,
+				                    p1.ASK_CityName ,
+				                    p1.ASK_ProvinceName ,
+				                    p1.PATIENT_Name ,
+				                    p1.PATIENT_Sex
+				          FROM      dbo.ZiXun_QuesMain AS q1
+				                    LEFT JOIN ( SELECT  DoctorUid ,
+				                                        DoctorName ,
+				                                        HosName ,
+				                                        DeptName,
+				                                        ProvinceID
+				                                FROM    v_myt_doctorService
+				                                WHERE   main = 1
+				                              ) AS d1 ON d1.DoctorUid = q1.ASK_DoctorID
+				                    LEFT JOIN ( SELECT  DoctorUid ,
+				                                        DoctorName ,
+				                                        HosName ,
+				                                        DeptName,
+				                                        ProvinceID
+				                                FROM    v_myt_doctorService
+				                                WHERE   main = 1
+				                              ) AS d2 ON d2.DoctorUid = q1.ASK_SourceAskID
+				                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+				          WHERE     1 = 1  @condition
+				        ) AS t1
+				WHERE   1 = 1 @page
+		</Sql>
+
+		<Sql name="quesListCountForCheckTeam">
+			SELECT COUNT(*)
+			FROM dbo.ZiXun_QuesMain AS q1
+			left JOIN ( SELECT DoctorUid ,
+			DoctorName,
+			HosName ,
+			DeptName,
+			ProvinceID
+			FROM v_myt_doctorService
+			where main = 1
+			) AS d1 ON d1.DoctorUid = q1.ASK_DoctorID
+			LEFT JOIN ( SELECT DoctorUid ,
+			DoctorName ,
+			HosName ,
+			DeptName,
+			ProvinceID
+			FROM v_myt_doctorService
+			WHERE main = 1
+			) AS d2 ON d2.DoctorUid = q1.ASK_SourceAskID
+			left JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			where 1=1
+			@condition
+		</Sql>
+		<Sql name="quesListDcSubOver">
+			SELECT *
+			FROM ( SELECT ROW_NUMBER() OVER ( ORDER BY QUESMAIN_CreateTime DESC
+			) rowId ,
+			*
+			FROM dbo.ZiXun_QuesMain AS t1
+			INNER JOIN dbo.ZiXun_DocSubCloseQues AS t2 ON t1.QUESMAIN_ID = t2.queID
+			INNER JOIN ( SELECT DoctorUid ,
+			DoctorName,
+			HosName ,
+			DeptName
+			FROM v_myt_doctorService
+			where main = 1) AS t3 ON t1.ASK_DoctorID = t3.DoctorUid
+			WHERE 1 = 1
+			 @condition
+			) AS t4
+			WHERE 1 = 1 @page
+		</Sql>
+		<Sql name="quesListDcSubOverCount">
+			select count(*) from ( SELECT *
+			FROM dbo.ZiXun_QuesMain AS t1
+			INNER JOIN dbo.ZiXun_DocSubCloseQues AS t2 ON t1.QUESMAIN_ID = t2.queID
+			INNER JOIN ( SELECT DoctorUid ,
+			DoctorName,
+			HosName ,
+			DeptName
+			FROM v_myt_doctorService
+			where main = 1) AS t3 ON t1.ASK_DoctorID = t3.DoctorUid
+			where 1=1
+			@condition ) as t4 WHERE 1 = 1 
+		</Sql>
+		<!-- <Sql name="quesListForDoctorWaitAnswer">
+			SELECT *
+			FROM (
+			SELECT ROW_NUMBER() OVER ( ORDER BY QD_SourceType asc , QD_DocReplayCount
+			ASC , QUESMAIN_CreateTime ASC ) rowid ,
+			q1.*,r1.*,p1.ASK_CityID,p1.ASK_CityName,p1.ASK_ProvinceID,p1.ASK_ProvinceName,
+			p1.PATIENT_Birth,p1.PATIENT_CreateTime,p1.PATIENT_Name,p1.PATIENT_Sex,p1.PATIENT_Status,
+			CASE WHEN  q1.QD_SourceType =0 THEN  '指定我的' 
+					WHEN q1.QD_SourceType=1 THEN '来自公共咨询' END AS sourceMemo,
+					CASE when q1.QD_SourceType =0 AND QD_OrdersStatus = 5 THEN '已超时'
+					ELSE '未超时' END as queStatus
+			FROM dbo.ZiXun_QuesMain AS q1
+			LEFT JOIN (
+			SELECT REPLY_Content ,
+			ASK_QuesID ,
+			REPLY_Type
+			FROM ZiXun_Reply t
+			WHERE REPLY_ID = ( SELECT TOP 1
+			REPLY_ID
+			FROM ZiXun_Reply
+			WHERE ASK_QuesID = t.ASK_QuesID
+			AND REPLY_UserType = 2
+			ORDER BY REPLY_CreateTime DESC
+			)
+
+			) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			WHERE ( QUESMAIN_Status = 1
+			AND ( QD_CheckStatus = 1
+			OR QD_CheckStatus = 3
+			)
+			AND QD_Status = 0
+			AND ( QD_OrdersStatus = 2
+			OR QD_OrdersStatus = 0
+			OR QD_OrdersStatus = 5
+			)
+			AND ( ( QD_SourceType = 0
+			AND QD_IsUserReplay = 1
+			)
+			OR ( QD_SourceType = 1
+			AND 0 >= DATEDIFF(MINUTE, QD_RecordExpiredTime, GETDATE())
+			AND QD_DocReplayCount = 0
+			)
+			OR ( QD_SourceType = 1
+			AND QD_DocReplayCount > 0
+			AND QD_IsUserReplay = 0
+			)
+			)
+			@c
+			)
+			OR ( 
+			 QUESMAIN_Status = 1
+			@d
+			AND ( QD_CheckStatus = 1
+			OR QD_CheckStatus = 3
+			)
+			AND QD_SourceType = 1
+			AND QD_IsReplay = 0
+			AND QD_IsUserReplay = 1
+			AND QD_Status = 0
+			AND QD_DocReplayCount = 0
+			AND ( ASK_DoctorID = 0
+			OR ( ASK_DoctorID > 0
+			AND DATEDIFF(MINUTE, QD_RecordExpiredTime, GETDATE()) > 0
+			)
+			)
+			AND QD_SourceType = 1
+			)
+			) as t1 where 1=1 @p
+		</Sql> -->
+			<Sql name="quesListForDoctorWaitAnswerDepts">
+			SELECT * FROM (
+				SELECT  ROW_NUMBER() OVER ( ORDER BY QD_SourceType ASC , waitTime DESC, QD_DocReplayCount ASC , QUESMAIN_CreateTime ASC ) as  rowid ,
+				        *
+				FROM    ( SELECT DISTINCT
+				                    q1.* ,
+				                    r1.* ,
+				                    p1.ASK_CityID ,
+				                    p1.ASK_CityName ,
+				                    p1.ASK_ProvinceID ,
+				                    p1.ASK_ProvinceName ,
+				                    p1.PATIENT_Birth ,
+				                    p1.PATIENT_CreateTime ,
+				                    p1.PATIENT_Name ,
+				                    p1.PATIENT_Sex ,
+				                    p1.PATIENT_Status ,
+				                    CASE WHEN q1.QD_SourceType = 0
+				                              AND q1.QD_DocReplayCount = 0 THEN '指定我的'
+				                         WHEN q1.QD_SourceType = 1
+				                              AND q1.QD_DocReplayCount = 0 THEN '来自公共咨询'
+				                         ELSE '追问'
+				                    END AS sourceMemo ,
+				                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN '已超时'
+				                         ELSE '未超时'
+				                    END AS queStatus ,
+				                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                    CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck ,
+				                    CASE WHEN r1.REPLY_CreateTime IS NULL
+				                         THEN q1.QUESMAIN_CreateTime
+				                         ELSE r1.REPLY_CreateTime
+				                    END AS waitTime
+				          FROM      dbo.ZiXun_QuesMain AS q1
+				                    LEFT JOIN ( SELECT  REPLY_Content ,
+				                                        ASK_QuesID ,
+				                                        REPLY_Type ,
+				                                        REPLY_CreateTime
+				                                FROM    ZiXun_Reply t
+				                                WHERE   REPLY_ID = ( SELECT TOP 1
+				                                                            REPLY_ID
+				                                                     FROM   ZiXun_Reply
+				                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+				                                                            AND REPLY_UserType = 2
+				                                                     ORDER BY REPLY_CreateTime DESC
+				                                                   )
+				                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+				                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+				                    LEFT JOIN ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 ) AS d ON d.ASK_QuesID = q1.QUESMAIN_ID
+				          WHERE     
+				             QUESMAIN_Status = 1
+				                    @c
+				                    AND QD_SourceType = 2
+				                    AND ( QD_OrdersStatus = 0
+				                          OR QD_OrdersStatus = 2
+				                        )
+				                    AND QD_IsReplay = 0
+				                    AND QD_IsUserReplay = 1
+				                    AND QD_Status = 0
+				                    AND ( QD_DocReplayCount = 0
+				                          AND ( q1.ASK_DoctorID = 0
+				                                OR ( q1.ASK_DoctorID > 0
+				                                     AND  0 >DATEDIFF(MINUTE, GETDATE(),
+				                                                  QD_RecordExpiredTime) 
+				                                   )
+				                              )
+				                          OR ( QD_DocReplayCount > 0
+				                               @d
+				                               OR ( QD_DocReplayCount = 0
+				                                    AND DATEDIFF(MINUTE, GETDATE(),
+				                                                 QD_RecordExpiredTime) > 0
+				                                  )
+				                             )
+				                        )
+				        ) AS t1 
+				        ) as t3  where 1=1 @p
+		</Sql>
+		<Sql name="quesListForDoctorWaitAnswerDeptsCount">
+			
+				SELECT  COUNT(*)
+				FROM    ( SELECT DISTINCT
+				                    q1.* ,
+				                    r1.* ,
+				                    p1.ASK_CityID ,
+				                    p1.ASK_CityName ,
+				                    p1.ASK_ProvinceID ,
+				                    p1.ASK_ProvinceName ,
+				                    p1.PATIENT_Birth ,
+				                    p1.PATIENT_CreateTime ,
+				                    p1.PATIENT_Name ,
+				                    p1.PATIENT_Sex ,
+				                    p1.PATIENT_Status ,
+				                    CASE WHEN q1.QD_SourceType = 0
+				                              AND q1.QD_DocReplayCount = 0 THEN '指定我的'
+				                         WHEN q1.QD_SourceType = 1
+				                              AND q1.QD_DocReplayCount = 0 THEN '来自公共咨询'
+				                         ELSE '追问'
+				                    END AS sourceMemo ,
+				                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN '已超时'
+				                         ELSE '未超时'
+				                    END AS queStatus ,
+				                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                    CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck ,
+				                    CASE WHEN r1.REPLY_CreateTime IS NULL
+				                         THEN q1.QUESMAIN_CreateTime
+				                         ELSE r1.REPLY_CreateTime
+				                    END AS waitTime
+				          FROM      dbo.ZiXun_QuesMain AS q1
+				                    LEFT JOIN ( SELECT  REPLY_Content ,
+				                                        ASK_QuesID ,
+				                                        REPLY_Type ,
+				                                        REPLY_CreateTime
+				                                FROM    ZiXun_Reply t
+				                                WHERE   REPLY_ID = ( SELECT TOP 1
+				                                                            REPLY_ID
+				                                                     FROM   ZiXun_Reply
+				                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+				                                                            AND REPLY_UserType = 2
+				                                                     ORDER BY REPLY_CreateTime DESC
+				                                                   )
+				                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+				                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+				                    LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON d.ASK_QuesID = q1.QUESMAIN_ID
+				          WHERE         QUESMAIN_Status = 1
+				                   @c
+				                    AND QD_SourceType = 2
+				                    AND ( QD_OrdersStatus = 0
+				                          OR QD_OrdersStatus = 2
+				                        )
+				                    AND QD_IsReplay = 0
+				                    AND QD_IsUserReplay = 1
+				                    AND QD_Status = 0
+				                    AND ( QD_DocReplayCount = 0
+				                          AND ( q1.ASK_DoctorID = 0
+				                                OR ( q1.ASK_DoctorID > 0
+				                                     AND 0 >DATEDIFF(MINUTE, GETDATE(),
+				                                                  QD_RecordExpiredTime) 
+				                                   )
+				                              )
+				                          OR ( QD_DocReplayCount > 0
+				                               @d
+				                               OR ( QD_DocReplayCount = 0
+				                                    AND DATEDIFF(MINUTE, GETDATE(),
+				                                                 QD_RecordExpiredTime) > 0
+				                                  )
+				                             )
+				                        )
+				        ) AS t1
+		</Sql>
+		<Sql name="quesListForDoctorWaitAnswer">		
+		select  * from (  
+			SELECT       ROW_NUMBER() OVER ( ORDER BY QD_SourceType ASC  , (case when QD_DocReplayCount > 0 then 1 else 2 end)  ASC, waitTime desc ,QUESMAIN_CreateTime asc  ) rowid ,
+			                   *
+			FROM    (  select DISTINCT q1.* ,
+			                    r1.* ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN q1.QD_SourceType = 0 and q1.QD_DocReplayCount =0 THEN '指定我的'
+			                         WHEN q1.QD_SourceType = 1 and     q1.QD_DocReplayCount =0 THEN '来自公共咨询'
+			                         ELSE  '追问'
+			                    END AS sourceMemo ,
+			                    CASE WHEN q1.QD_SourceType = 0
+			                           and  GETDATE()  >  QUESMAIN_ExpiredTime  THEN '已超时'  
+			                         ELSE '未超时'
+			                    END AS queStatus ,
+			                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                   CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck,
+				               CASE WHEN r1.REPLY_CreateTime IS NULL THEN q1.QUESMAIN_CreateTime
+                         ELSE r1.REPLY_CreateTime
+                    END AS waitTime
+			          FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                 	LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE          ( QUESMAIN_Status = 1
+			                      AND ( QD_CheckStatus = 1
+			                            OR QD_CheckStatus = 3
+			                          )
+			                      AND QD_Status = 0
+			                      AND ( QD_OrdersStatus = 2
+			                            OR QD_OrdersStatus = 0
+			                            OR QD_OrdersStatus = 5
+			                          )
+			                      AND ( ( QD_SourceType = 0
+			                              AND QD_IsUserReplay = 1
+			                            )
+			                            OR ( QD_SourceType = 1
+			                                 AND 0 >= DATEDIFF(MINUTE,
+			                                                   QD_RecordExpiredTime,
+			                                                   GETDATE())
+			                                 AND QD_DocReplayCount = 0
+			                               )
+			                            OR (QD_SourceType = 1
+			                                 AND QD_DocReplayCount > 0
+			                                 AND QD_IsReplay = 0
+			                                 AND QD_IsUserReplay =1
+			                               )
+			                          )
+			                       @c
+			                    )
+			                    OR ( QUESMAIN_Status = 1
+			                         AND QD_SourceType = 1
+			                         @d
+			                         AND ( QD_CheckStatus = 1
+			                               OR QD_CheckStatus = 3
+			                             )
+			                         AND QD_SourceType = 1
+			                         AND QD_IsReplay = 0
+			                         AND QD_IsUserReplay = 1
+			                         AND QD_Status = 0
+			                         AND QD_DocReplayCount = 0
+			                         AND ( ASK_DoctorID = 0
+			                               OR ( ASK_DoctorID > 0
+			                                    AND DATEDIFF(MINUTE, QD_RecordExpiredTime,
+			                                                 GETDATE()) > 0
+			                                  )
+			                             )
+			                         AND QD_SourceType = 1
+			                       )
+			        ) AS t1
+			WHERE   1 = 1  ) as t5 where 1=1 @p
+					</Sql>
+		
+		
+		<Sql name="quesListForDoctorWaitAnswerFreeQues">		
+		select  * from (  
+			SELECT       ROW_NUMBER() OVER ( ORDER BY  @order    QD_SourceType ASC  , (case when QD_DocReplayCount > 0 then 1 else 2 end)  ASC, waitTime desc ,QUESMAIN_CreateTime asc  ) rowid ,
+			                   *
+			FROM    (  select DISTINCT q1.* ,
+			                    r1.* ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                     p1.ASK_ProvinceID AS  provinceID,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN q1.QD_SourceType = 0 and q1.QD_DocReplayCount =0 THEN '指定我的'
+			                         WHEN q1.QD_SourceType = 1 and     q1.QD_DocReplayCount =0 THEN '来自公共咨询'
+			                         ELSE  '追问'
+			                    END AS sourceMemo ,
+			                    CASE WHEN q1.QD_SourceType = 0
+			                           and  GETDATE()  >  QUESMAIN_ExpiredTime  THEN '已超时'  
+			                         ELSE '未超时'
+			                    END AS queStatus ,
+			                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                   CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck,
+				               CASE WHEN r1.REPLY_CreateTime IS NULL THEN q1.QUESMAIN_CreateTime
+                         ELSE r1.REPLY_CreateTime
+                    END AS waitTime
+			          FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                 	LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE           QUESMAIN_Status = 1
+			                         AND QD_SourceType = 1
+			                         @d
+			                         AND ( QD_CheckStatus = 1
+			                               OR QD_CheckStatus = 3
+			                             )
+			                         AND QD_SourceType = 1
+			                         AND QD_IsReplay = 0
+			                         AND QD_IsUserReplay = 1
+			                         AND QD_Status = 0
+			                         AND QD_DocReplayCount = 0
+			                         AND ( ASK_DoctorID = 0
+			                               OR ( ASK_DoctorID > 0
+			                                    AND DATEDIFF(MINUTE, QD_RecordExpiredTime,
+			                                                 GETDATE()) > 0
+			                                  )
+			                             )
+			                         AND QD_SourceType = 1
+			                       
+			        ) AS t1
+			WHERE   1 = 1  ) as t5 where 1=1 @p
+					</Sql>
+				<Sql name="quesListForDoctorWaitAnswerFreeQuesCount">
+		SELECT    count(*)
+			                    
+			            FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT DISTINCT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                    LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE    QUESMAIN_Status = 1
+			                         AND QD_SourceType = 1
+			                         @d
+			                         AND ( QD_CheckStatus = 1
+			                               OR QD_CheckStatus = 3
+			                             )
+			                         AND QD_SourceType = 1
+			                         AND QD_IsReplay = 0
+			                         AND QD_IsUserReplay = 1
+			                         AND QD_Status = 0
+			                         AND QD_DocReplayCount = 0
+			                         AND ( ASK_DoctorID = 0
+			                               OR ( ASK_DoctorID > 0
+			                                    AND DATEDIFF(MINUTE, QD_RecordExpiredTime,
+			                                                 GETDATE()) > 0
+			                                  )
+			                             )
+			                         AND QD_SourceType = 1
+			                       
+			        
+		</Sql>	
+		<Sql name="quesListForDoctorWaitAnswerForNoFreeQue">		
+		select  * from (  
+			SELECT       ROW_NUMBER() OVER ( ORDER BY QD_SourceType ASC  , (case when QD_DocReplayCount > 0 then 1 else 2 end)  ASC, waitTime desc ,QUESMAIN_CreateTime asc  ) rowid ,
+			                   *
+			FROM    (  select DISTINCT q1.* ,
+			                    r1.* ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN q1.QD_SourceType = 0 and q1.QD_DocReplayCount =0 THEN '指定我的'
+			                         WHEN q1.QD_SourceType = 1 and     q1.QD_DocReplayCount =0 THEN '来自公共咨询'
+			                         ELSE  '追问'
+			                    END AS sourceMemo ,
+			                    CASE WHEN q1.QD_SourceType = 0
+			                           and  GETDATE()  >  QUESMAIN_ExpiredTime  THEN '已超时'  
+			                         ELSE '未超时'
+			                    END AS queStatus ,
+			                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                   CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck,
+				               CASE WHEN r1.REPLY_CreateTime IS NULL THEN q1.QUESMAIN_CreateTime
+                         ELSE r1.REPLY_CreateTime
+                    END AS waitTime
+			          FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                 	LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE      QUESMAIN_Status = 1
+			                      AND ( QD_CheckStatus = 1
+			                            OR QD_CheckStatus = 3
+			                          )
+			                      AND QD_Status = 0
+			                      AND ( QD_OrdersStatus = 2
+			                            OR QD_OrdersStatus = 0
+			                            OR QD_OrdersStatus = 5
+			                          )
+			                      AND ( ( QD_SourceType = 0
+			                              AND QD_IsUserReplay = 1
+			                            )
+			                            OR ( QD_SourceType = 1
+			                                 AND 0 >= DATEDIFF(MINUTE,
+			                                                   QD_RecordExpiredTime,
+			                                                   GETDATE())
+			                                 AND QD_DocReplayCount = 0
+			                               )
+			                            OR (QD_SourceType = 1
+			                                 AND QD_DocReplayCount > 0
+			                                 AND QD_IsReplay = 0
+			                                 AND QD_IsUserReplay =1
+			                               )
+			                          )
+			                       @c
+			                  
+			                  
+			        ) AS t1
+			WHERE   1 = 1  ) as t5 where 1=1 @p
+					</Sql>
+		<Sql name="quesListForDoctorWaitAnswerForNoFreeQueCount">
+		SELECT    count(*)
+			                    
+			            FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT DISTINCT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                    LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE    QUESMAIN_Status = 1
+			                      AND ( QD_CheckStatus = 1
+			                            OR QD_CheckStatus = 3
+			                          )
+			                      AND QD_Status = 0
+			                      AND ( QD_OrdersStatus = 2
+			                            OR QD_OrdersStatus = 0
+			                            OR QD_OrdersStatus = 5
+			                          )
+			                      AND ( ( QD_SourceType = 0
+			                              AND QD_IsUserReplay = 1
+			                            )
+			                            OR ( QD_SourceType = 1
+			                                 AND 0 >= DATEDIFF(MINUTE,
+			                                                   QD_RecordExpiredTime,
+			                                                   GETDATE())
+			                                 AND QD_DocReplayCount = 0
+			                               )
+			                            OR (QD_SourceType = 1
+			                                 AND QD_DocReplayCount > 0
+			                                 AND QD_IsReplay = 0
+			                                 AND QD_IsUserReplay =1
+			                               )
+			                          )
+			                       @c
+			                    
+			                   
+			        
+		</Sql>			
+		<Sql name="quesListForDoctorWaitAnswerCount">
+		SELECT    count(*)
+			                    
+			            FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT DISTINCT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                    LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE    ( QUESMAIN_Status = 1
+			                      AND ( QD_CheckStatus = 1
+			                            OR QD_CheckStatus = 3
+			                          )
+			                      AND QD_Status = 0
+			                      AND ( QD_OrdersStatus = 2
+			                            OR QD_OrdersStatus = 0
+			                            OR QD_OrdersStatus = 5
+			                          )
+			                      AND ( ( QD_SourceType = 0
+			                              AND QD_IsUserReplay = 1
+			                            )
+			                            OR ( QD_SourceType = 1
+			                                 AND 0 >= DATEDIFF(MINUTE,
+			                                                   QD_RecordExpiredTime,
+			                                                   GETDATE())
+			                                 AND QD_DocReplayCount = 0
+			                               )
+			                            OR (QD_SourceType = 1
+			                                 AND QD_DocReplayCount > 0
+			                                 AND QD_IsReplay = 0
+			                                 AND QD_IsUserReplay =1
+			                               )
+			                          )
+			                       @c
+			                    )
+			                    OR ( QUESMAIN_Status = 1
+			                         AND QD_SourceType = 1
+			                         @d
+			                         AND ( QD_CheckStatus = 1
+			                               OR QD_CheckStatus = 3
+			                             )
+			                         AND QD_SourceType = 1
+			                         AND QD_IsReplay = 0
+			                         AND QD_IsUserReplay = 1
+			                         AND QD_Status = 0
+			                         AND QD_DocReplayCount = 0
+			                         AND ( ASK_DoctorID = 0
+			                               OR ( ASK_DoctorID > 0
+			                                    AND DATEDIFF(MINUTE, QD_RecordExpiredTime,
+			                                                 GETDATE()) > 0
+			                                  )
+			                             )
+			                         AND QD_SourceType = 1
+			                       )
+			        
+		</Sql>
+		<!-- <Sql name="quesListForDoctorWaitAnswerCount">
+			SELECT count(*)
+			FROM dbo.ZiXun_QuesMain AS q1
+			LEFT JOIN (
+			SELECT REPLY_Content ,
+			ASK_QuesID ,
+			REPLY_CreateTime,
+			REPLY_Type
+			FROM ZiXun_Reply t
+			WHERE REPLY_ID = ( SELECT TOP 1
+			REPLY_ID
+			FROM ZiXun_Reply
+			WHERE ASK_QuesID = t.ASK_QuesID
+			AND REPLY_UserType = 2
+			ORDER BY REPLY_CreateTime DESC
+			)
+			) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			WHERE ( QUESMAIN_Status = 1
+			AND ( QD_CheckStatus = 1
+			OR QD_CheckStatus = 3
+			)
+			AND QD_Status = 0
+			AND ( QD_OrdersStatus = 2
+			OR QD_OrdersStatus = 0
+			OR QD_OrdersStatus = 5
+			)
+			AND ( ( QD_SourceType = 0
+			AND QD_IsUserReplay = 1
+			)
+			OR ( QD_SourceType = 1
+			AND 0 >= DATEDIFF(MINUTE, QD_RecordExpiredTime, GETDATE())
+			AND QD_DocReplayCount = 0
+			)
+			OR ( QD_SourceType = 1
+			AND QD_DocReplayCount > 0
+			AND QD_IsUserReplay = 0
+			)
+			)
+			@c
+			)
+			OR ( 
+			 QUESMAIN_Status = 1
+			 @d
+			AND ( QD_CheckStatus = 1
+			OR QD_CheckStatus = 3
+			)
+			AND QD_SourceType = 1
+			AND QD_IsReplay = 0
+			AND QD_IsUserReplay = 1
+			AND QD_Status = 0
+			AND QD_DocReplayCount = 0
+			AND ( ASK_DoctorID = 0
+			OR ( ASK_DoctorID > 0
+			AND DATEDIFF(MINUTE, QD_RecordExpiredTime, GETDATE()) > 0
+			)
+			)
+			AND QD_SourceType = 1
+			)
+		</Sql> -->
+		<Sql name="quesListForDoctorWaitAnswerCountNoFree">
+			SELECT count(*)
+			FROM dbo.ZiXun_QuesMain AS q1
+			LEFT JOIN (
+			SELECT REPLY_Content ,
+			ASK_QuesID ,
+			REPLY_CreateTime,
+			REPLY_Type
+			FROM ZiXun_Reply t
+			WHERE REPLY_ID = ( SELECT TOP 1
+			REPLY_ID
+			FROM ZiXun_Reply
+			WHERE ASK_QuesID = t.ASK_QuesID
+			AND REPLY_UserType = 2
+			ORDER BY REPLY_CreateTime DESC
+			)
+			) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			WHERE ( QUESMAIN_Status = 1
+			AND ( QD_CheckStatus = 1
+			OR QD_CheckStatus = 3
+			)
+			AND QD_Status = 0
+			AND ( QD_OrdersStatus = 2
+			OR QD_OrdersStatus = 0
+			OR QD_OrdersStatus = 5
+			)
+			AND ( ( QD_SourceType = 0
+			AND QD_IsUserReplay = 1
+			)
+			OR ( QD_SourceType = 1
+			AND 0 >= DATEDIFF(MINUTE, QD_RecordExpiredTime, GETDATE())
+			AND QD_DocReplayCount = 0
+			)
+			OR ( QD_SourceType = 1
+                              AND QD_DocReplayCount > 0
+                              AND QD_IsReplay = 0
+                              AND QD_IsUserReplay =1
+			)
+			)
+			@c
+			)
+			
+		</Sql>
+	<Sql name="quesListForDoctorAnswerNoOver">
+			select * from (
+			SELECT ROW_NUMBER() OVER ( ORDER BY  lastTime DESC ,
+			QD_SourceType ASC , QUESMAIN_CreateTime ASC ) rowid ,q1.*
+			,p1.ASK_CityID,p1.ASK_CityName,p1.ASK_ProvinceID,p1.ASK_ProvinceName,
+			p1.PATIENT_Birth,p1.PATIENT_CreateTime,p1.PATIENT_Name,p1.PATIENT_Sex,p1.PATIENT_Status,t3.lastTime
+			FROM dbo.ZiXun_QuesMain as q1
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			LEFT JOIN (SELECT ASK_QuesID,MAX(REPLY_CreateTime)AS lastTime FROM dbo.ZiXun_Reply WHERE REPLY_UserType = 1  GROUP BY ASK_QuesID) AS t3 ON t3.ASK_QuesID = q1.QUESMAIN_ID
+			WHERE QD_DocReplayCount > 0
+			AND QD_IsUserReplay = 0
+			and QD_Status != 1
+			AND  QD_Status != 2
+			@c ) as t1 where 1=1 @p
+		</Sql> 
+		
+		<Sql name="quesListForDoctorAnswerNoOverCount"><![CDATA[
+			SELECT count(*)
+			FROM dbo.ZiXun_QuesMain as q1
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			WHERE QD_DocReplayCount > 0
+			AND QD_IsUserReplay = 0
+			and QD_Status != 1
+			AND  QD_Status != 2
+			@c	]]>
+		</Sql>
+		<Sql name="quesListForDoctorAnswerAndOver">
+	select * from (	SELECT   ROW_NUMBER() OVER ( ORDER BY overTime DESC ) rowid ,*
+			FROM    ( SELECT   
+			                    t1.* ,
+			                    CASE WHEN t2.CreateTime IS NULL
+			                         THEN t1.QUESMAIN_ExpiredTime
+			                         ELSE t2.CreateTime
+			                    END AS overTime ,
+			                    CASE WHEN t1.QD_SourceType = 0
+				                              AND QD_Price=0 AND (t2.OperType = 2 or  t2.OperType =1) THEN 1
+				                         ELSE 0
+				                END AS qeStatus ,
+			                    t2.OperType ,
+			                    t2.QuesID ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN  cr1.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFavorable ,
+			                    CASE WHEN cr2.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS iffirstLoveValue ,
+			                    CASE WHEN cr3.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFreeLoveValue ,
+			                    v.DoctorName
+			          FROM      dbo.ZiXun_QuesMain AS t1
+			                    LEFT JOIN dbo.ZiXun_QuesCloseWater AS t2 ON t1.QUESMAIN_ID = t2.QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = t1.ASK_PatientID
+			                    LEFT JOIN ( SELECT 
+			                                       DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 1
+			                              ) AS cr1 ON t1.QUESMAIN_ID = cr1.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 2
+			                              ) AS cr2 ON t1.QUESMAIN_ID = cr2.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 3
+			                              ) AS cr3 ON t1.QUESMAIN_ID = cr3.ASK_QuesID
+			                    LEFT JOIN dbo.v_myt_doctorService v ON v.DoctorUid = t1.ASK_DoctorID
+			          WHERE     ( QD_Status = 1
+			                      OR QD_Status = 2
+			                    )
+			                     AND v.Main = 1
+			     @c   ) AS t3
+			WHERE   1 = 1
+			) as t5 where 1=1
+			 @p
+		</Sql>
+		<Sql name="quesListForDoctorAnswerAndOverCount">
+	select  count(*)   from(
+	SELECT  * from (
+	
+	SELECT   ROW_NUMBER() OVER ( ORDER BY overTime DESC ) rowid ,*
+			FROM    ( SELECT   
+			                    t1.* ,
+			                    CASE WHEN t2.CreateTime IS NULL
+			                         THEN t1.QUESMAIN_ExpiredTime
+			                         ELSE t2.CreateTime
+			                    END AS overTime ,
+			                    CASE WHEN t1.QD_SourceType = 0
+				                              AND QD_Price=0 AND (t2.OperType = 2 or  t2.OperType =1) THEN 1
+				                         ELSE 0
+				                END AS qeStatus ,
+			                    t2.OperType ,
+			                    t2.QuesID ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN  cr1.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFavorable ,
+			                    CASE WHEN cr2.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS iffirstLoveValue ,
+			                    CASE WHEN cr3.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFreeLoveValue ,
+			                    v.DoctorName
+			          FROM      dbo.ZiXun_QuesMain AS t1
+			                    LEFT JOIN dbo.ZiXun_QuesCloseWater AS t2 ON t1.QUESMAIN_ID = t2.QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = t1.ASK_PatientID
+			                    LEFT JOIN ( SELECT 
+			                                       DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 1
+			                              ) AS cr1 ON t1.QUESMAIN_ID = cr1.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 2
+			                              ) AS cr2 ON t1.QUESMAIN_ID = cr2.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 3
+			                              ) AS cr3 ON t1.QUESMAIN_ID = cr3.ASK_QuesID
+			                    LEFT JOIN dbo.v_myt_doctorService v ON v.DoctorUid = t1.ASK_DoctorID
+			          WHERE     ( QD_Status = 1
+			                      OR QD_Status = 2
+			                    )
+			                     AND v.Main = 1
+			     @c   ) AS t3
+			WHERE   1 = 1   ) as yy LEFT JOIN  ZIXUN_OpenAuth as jj ON yy.quesmain_id =jj.QuesMainId  ) as  uu
+			
+		</Sql>
+		<Sql name="quesListForDoctorAnswerAndOverCountChangzheng">
+			SELECT count(*)  
+			FROM dbo.ZiXun_QuesMain AS t1
+			LEFT JOIN dbo.ZiXun_QuesCloseWater AS t2 ON t1.QUESMAIN_ID = t2.QuesID
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = t1.ASK_PatientID
+			LEFT JOIN dbo.v_myt_doctorService v ON v.DoctorUid = t1.ASK_DoctorID
+			WHERE ( QD_Status = 1
+			OR QD_Status = 2
+			)
+			@c
+		</Sql>
+		<Sql name="quesDoctorWaitAnswerLastTime">
+
+		SELECT MAX(waitTime) as lastTime FROM (
+		SELECT  CASE WHEN r1.REPLY_CreateTime IS NULL
+		THEN q1.QUESMAIN_CreateTime
+		ELSE r1.REPLY_CreateTime
+		END AS waitTime
+					FROM dbo.ZiXun_QuesMain AS q1
+					LEFT JOIN (
+					SELECT REPLY_Content ,
+					ASK_QuesID ,
+					REPLY_CreateTime,
+					REPLY_Type
+					FROM ZiXun_Reply t
+					WHERE REPLY_ID = ( SELECT TOP 1
+					REPLY_ID
+					FROM ZiXun_Reply
+					WHERE ASK_QuesID = t.ASK_QuesID
+					AND REPLY_UserType = 2
+					ORDER BY REPLY_CreateTime DESC
+					)
+					) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+					LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+					WHERE ( QUESMAIN_Status = 1
+					AND ( QD_CheckStatus = 1
+					OR QD_CheckStatus = 3
+					)
+					AND QD_Status = 0
+					AND ( QD_OrdersStatus = 2
+					OR QD_OrdersStatus = 0
+					OR QD_OrdersStatus = 5
+					)
+					AND ( ( QD_SourceType = 0
+					AND QD_IsUserReplay = 1
+					)
+					OR ( QD_SourceType = 1
+					AND 0 >= DATEDIFF(MINUTE, QD_RecordExpiredTime, GETDATE())
+					AND QD_DocReplayCount = 0
+					)
+					OR ( QD_SourceType = 1
+		                              AND QD_DocReplayCount > 0
+		                              AND QD_IsReplay = 0
+		                              AND QD_IsUserReplay =1
+					)
+					)
+					@c
+					)) AS t1 
+	</Sql>
+	
+	
+	<!-- 报表 -->
+	
+	<Sql name="queReportForDepts">
+	select * from (
+	SELECT <!-- SUM(type1) AS '指定问题' ,
+        SUM(type2) AS '已回复指定问题' ,
+        SUM(type3) AS '免费问题' ,
+        SUM(type4) AS '已回复免费问题' , -->
+        SUM(type1) as type1,
+        SUM(type2) as type2,
+        SUM(type3) as type3,
+        SUM(type4) as type4,
+        dept,
+        deptOne
+ FROM ( SELECT CASE WHEN contype = 1 THEN con
+                         ELSE 0
+                    END AS TYPE1 ,
+                    CASE WHEN contype = 2 THEN con
+                         ELSE 0
+                    END AS TYPE2 ,
+                    CASE WHEN contype = 3 THEN con
+                         ELSE 0
+                    END AS TYPE3 ,
+                    CASE WHEN contype = 4 THEN con
+                         ELSE 0
+                    END AS TYPE4 ,
+                    dept,
+                    deptOne
+          FROM ( SELECT ASK_DepartNameTwo AS dept ,
+        ASK_DepartNameOne AS deptOne,
+                                COUNT(*) AS con ,
+                                1 AS contype
+                      FROM ( SELECT d.ASK_DepartNameTwo ,
+                                            d.ASK_DepartNameOne ,
+                                            CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                  FROM dbo.ZiXun_QuesMain AS t1
+                                            LEFT JOIN dbo.ZiXun_Departments AS d ON t1.QUESMAIN_ID = d.ASK_QuesID
+                                  WHERE QD_CheckStatus = 1
+                                            AND QD_SourceType = 1
+                                            AND QD_DeptIDS != ''
+                                            AND ASK_DepartIDOne IS NOT NULL
+                                            AND ASK_DepartIDTwo IS NOT NULL
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                ) AS t
+                      GROUP BY ASK_DepartNameTwo,
+                                ASK_DepartNameOne
+                      UNION
+                      SELECT ASK_DepartNameTwo AS dept ,
+         ASK_DepartNameOne AS deptOne,
+                                COUNT(*) AS con ,
+                                2 AS contype
+                      FROM ( SELECT d.ASK_DepartNameTwo ,
+                                            d.ASK_DepartNameOne ,
+                                            CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                  FROM dbo.ZiXun_QuesMain AS t1
+                                            LEFT JOIN dbo.ZiXun_Departments AS d ON t1.QUESMAIN_ID = d.ASK_QuesID
+                                  WHERE QD_CheckStatus = 1
+                                            AND QD_SourceType = 1
+                                            AND QD_DeptIDS != ''
+                                            AND ASK_DepartIDOne IS NOT NULL
+                                            AND ASK_DepartIDTwo IS NOT NULL
+                                            AND QD_DocReplayCount > 0
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                ) AS t
+                      GROUP BY ASK_DepartNameTwo,
+                                ASK_DepartNameOne
+                      UNION
+                      SELECT n1 AS dept ,
+        n2 AS deptOne,
+                                COUNT(*) AS con ,
+                                3 AS contype
+                      FROM ( SELECT d1.n1 ,
+           d1.n2,
+                                            2 AS contype
+                                  FROM ( SELECT REPLACE(QD_DeptTwoIDS,
+                                                              ',', '') AS dept ,
+                                                        CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                              FROM dbo.ZiXun_QuesMain
+                                              WHERE QD_CheckStatus = 1
+                                                        AND QD_SourceType = 0
+                                                        AND QD_DeptIDS != ''
+                                                        AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                            ) AS t1
+                                           LEFT JOIN (SELECT dp1.NAME AS n1,dp2.NAME AS n2,dp1.DEPTID FROM smallDepartMent AS dp1 LEFT JOIN bigDepartMent AS dp2 ON parentid = deptsn)
+                                            AS d1 ON t1.dept = d1.DEPTID
+                                  WHERE 1 = 1
+                                ) AS tt
+                      GROUP BY n1 ,
+                                n2
+                      UNION
+                      SELECT n1 AS dept ,
+        n2 AS deptOne,
+                                COUNT(*) AS con ,
+                                4 AS contype
+                      FROM ( SELECT d1.n1 ,
+           d1.n2,
+                                            2 AS contype
+                                  FROM ( SELECT REPLACE(QD_DeptTwoIDS,
+                                                              ',', '') AS dept ,
+                                                        CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                              FROM dbo.ZiXun_QuesMain
+                                              WHERE QD_CheckStatus = 1
+                                                        AND QD_SourceType = 0
+                                                        AND QD_DeptIDS != ''
+                                                        AND QD_DocReplayCount > 0
+                                                        AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                            ) AS t1
+                                            LEFT JOIN (SELECT dp1.NAME AS n1,dp2.NAME AS n2,dp1.DEPTID FROM smallDepartMent AS dp1 LEFT JOIN bigDepartMent AS dp2 ON parentid = deptsn)
+                                            AS d1 ON t1.dept = d1.DEPTID
+                                  WHERE 1 = 1
+                                ) AS tt
+                      GROUP BY n1,
+                                n2
+                                 
+                    ) AS tt
+          WHERE 1 = 1
+        ) AS t
+GROUP BY t.dept,T.deptOne ) as ttt where 1=1 
+	</Sql>
+	<Sql name="queReportForDeptsCount">
+	select count(*) from (
+	SELECT SUM(type1) AS '指定问题' ,
+        SUM(type2) AS '已回复指定问题' ,
+        SUM(type3) AS '免费问题' ,
+        SUM(type4) AS '已回复免费问题' ,
+        dept,
+        deptOne
+ FROM ( SELECT CASE WHEN contype = 1 THEN con
+                         ELSE 0
+                    END AS TYPE1 ,
+                    CASE WHEN contype = 2 THEN con
+                         ELSE 0
+                    END AS TYPE2 ,
+                    CASE WHEN contype = 3 THEN con
+                         ELSE 0
+                    END AS TYPE3 ,
+                    CASE WHEN contype = 4 THEN con
+                         ELSE 0
+                    END AS TYPE4 ,
+                    dept,
+                    deptOne
+          FROM ( SELECT ASK_DepartNameTwo AS dept ,
+        ASK_DepartNameOne AS deptOne,
+                                COUNT(*) AS con ,
+                                1 AS contype
+                      FROM ( SELECT d.ASK_DepartNameTwo ,
+                                            d.ASK_DepartNameOne ,
+                                            CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                  FROM dbo.ZiXun_QuesMain AS t1
+                                            LEFT JOIN dbo.ZiXun_Departments AS d ON t1.QUESMAIN_ID = d.ASK_QuesID
+                                  WHERE QD_CheckStatus = 1
+                                            AND QD_SourceType = 1
+                                            AND QD_DeptIDS != ''
+                                            AND ASK_DepartIDOne IS NOT NULL
+                                            AND ASK_DepartIDTwo IS NOT NULL
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                ) AS t
+                      GROUP BY ASK_DepartNameTwo,
+                                ASK_DepartNameOne
+                      UNION
+                      SELECT ASK_DepartNameTwo AS dept ,
+         ASK_DepartNameOne AS deptOne,
+                                COUNT(*) AS con ,
+                                2 AS contype
+                      FROM ( SELECT d.ASK_DepartNameTwo ,
+                                            d.ASK_DepartNameOne ,
+                                            CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                  FROM dbo.ZiXun_QuesMain AS t1
+                                            LEFT JOIN dbo.ZiXun_Departments AS d ON t1.QUESMAIN_ID = d.ASK_QuesID
+                                  WHERE QD_CheckStatus = 1
+                                            AND QD_SourceType = 1
+                                            AND QD_DeptIDS != ''
+                                            AND ASK_DepartIDOne IS NOT NULL
+                                            AND ASK_DepartIDTwo IS NOT NULL
+                                            AND QD_DocReplayCount > 0
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                ) AS t
+                      GROUP BY ASK_DepartNameTwo,
+                                ASK_DepartNameOne
+                      UNION
+                      SELECT n1 AS dept ,
+        n2 AS deptOne,
+                                COUNT(*) AS con ,
+                                3 AS contype
+                      FROM ( SELECT d1.n1 ,
+           d1.n2,
+                                            2 AS contype
+                                  FROM ( SELECT REPLACE(QD_DeptTwoIDS,
+                                                              ',', '') AS dept ,
+                                                        CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                              FROM dbo.ZiXun_QuesMain
+                                              WHERE QD_CheckStatus = 1
+                                                        AND QD_SourceType = 0
+                                                        AND QD_DeptIDS != ''
+                                                        AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                            ) AS t1
+                                           LEFT JOIN (SELECT dp1.NAME AS n1,dp2.NAME AS n2,dp1.DEPTID FROM smallDepartMent AS dp1 LEFT JOIN bigDepartMent AS dp2 ON parentid = deptsn)
+                                            AS d1 ON t1.dept = d1.DEPTID
+                                  WHERE 1 = 1
+                                ) AS tt
+                      GROUP BY n1 ,
+                                n2
+                      UNION
+                      SELECT n1 AS dept ,
+        n2 AS deptOne,
+                                COUNT(*) AS con ,
+                                4 AS contype
+                      FROM ( SELECT d1.n1 ,
+           d1.n2,
+                                            2 AS contype
+                                  FROM ( SELECT REPLACE(QD_DeptTwoIDS,
+                                                              ',', '') AS dept ,
+                                                        CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS time
+                                              FROM dbo.ZiXun_QuesMain
+                                              WHERE QD_CheckStatus = 1
+                                                        AND QD_SourceType = 0
+                                                        AND QD_DeptIDS != ''
+                                                        AND QD_DocReplayCount > 0
+                                                        AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) =@c
+                                            ) AS t1
+                                            LEFT JOIN (SELECT dp1.NAME AS n1,dp2.NAME AS n2,dp1.DEPTID FROM smallDepartMent AS dp1 LEFT JOIN bigDepartMent AS dp2 ON parentid = deptsn)
+                                            AS d1 ON t1.dept = d1.DEPTID
+                                  WHERE 1 = 1
+                                ) AS tt
+                      GROUP BY n1,
+                                n2
+                                 
+                    ) AS tt
+          WHERE 1 = 1
+        ) AS t
+GROUP BY t.dept,T.deptOne ) as tt where 1=1
+	</Sql>
+		
+	<Sql name="queReportForDays">
+SELECT  type1 AS days ,
+       <!--  SUM(type2) AS '已付款问题数' ,
+        SUM(type3) AS '免费名额问题数' ,
+        SUM(type4) AS '指定问题总数' ,
+        SUM(type5) AS '付款医生回复' ,
+        SUM(type6) AS '免费名额医生回复' ,
+        SUM(type7) AS '咨询总数' ,
+        SUM(type8) AS '已回复' ,
+        SUM(type9) AS '医生回复' ,
+        SUM(type10) AS '医学团队回复' -->
+        
+         SUM(type2) as type2,
+         SUM(type3) as type3,
+         SUM(type4) as type4,
+         SUM(type5) as type5,
+         SUM(type6) as type6,
+         SUM(type7) as type7,
+         SUM(type8) as type8,
+         SUM(type9) as type9,
+         SUM(type10) as type10
+         
+        
+FROM    ( SELECT    days AS type1 ,
+                    CASE WHEN contType = 1 THEN con
+                         ELSE 0
+                    END AS type2 ,
+                    CASE WHEN contType = 2 THEN con
+                         ELSE 0
+                    END AS type3 ,
+                    CASE WHEN contType = 3 THEN con
+                         ELSE 0
+                    END AS type4 ,
+                    CASE WHEN contType = 4 THEN con
+                         ELSE 0
+                    END AS type5 ,
+                    CASE WHEN contType = 5 THEN con
+                         ELSE 0
+                    END AS type6 ,
+                    CASE WHEN contType = 6 THEN con
+                         ELSE 0
+                    END AS type7 ,
+                    CASE WHEN contType = 7 THEN con
+                         ELSE 0
+                    END AS type8 ,
+                    CASE WHEN contType = 8 THEN con
+                         ELSE 0
+                    END AS type9,
+                    CASE WHEN contType = 9 THEN con
+                         ELSE 0
+                    END AS type10
+          FROM      ( SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                1 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 0
+                                            AND ( QD_OrdersStatus = 2
+                                                  OR QD_OrdersStatus = 0
+                                                  OR QD_OrdersStatus = 5
+                                                )
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_QuesType = 0
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                2 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 0
+                                            AND ( QD_OrdersStatus = 2
+                                                  OR QD_OrdersStatus = 0
+                                                )
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QUESMAIN_Status = 1
+                                            AND QD_QuesType = 1
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                3 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 0
+                                            AND ( QD_OrdersStatus = 2
+                                                  OR QD_OrdersStatus = 0
+                                                  OR QD_OrdersStatus = 5
+                                                )
+                                                
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                4 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 0
+                                            AND ( QD_OrdersStatus = 2
+                                                  OR QD_OrdersStatus = 0
+                                                )
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_DocReplayCount > 0
+                                            AND QD_QuesType = 0
+                                             AND ASK_DoctorID NOT IN (
+                                            '710002563', '710003628',
+                                            '710003629', '710003630',
+                                            '710003631', '710003632',
+                                            '710003633' )
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                5 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 0
+                                            AND ( QD_OrdersStatus = 2
+                                                  OR QD_OrdersStatus = 0
+                                                )
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_DocReplayCount > 0
+                                            AND QD_QuesType = 1
+                                             AND ASK_DoctorID NOT IN (
+                                            '710002563', '710003628',
+                                            '710003629', '710003630',
+                                            '710003631', '710003632',
+                                            '710003633' )
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                6 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 1
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_QuesType = 0
+                                           
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                7 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 1
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_DocReplayCount > 0
+                                            AND QD_QuesType = 0
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                8 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 1
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_DocReplayCount > 0
+                                            AND ASK_DoctorID NOT IN (
+                                            '710002563', '710003628',
+                                            '710003629', '710003630',
+                                            '710003631', '710003632',
+                                            '710003633' )
+                                            AND QD_QuesType = 0
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                DAYS ,
+                                9 AS contType
+                      FROM      ( SELECT    CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) AS days
+                                  FROM      dbo.ZiXun_QuesMain
+                                  WHERE     QD_SourceType = 1
+                                            AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                            AND QD_DocReplayCount > 0
+                                            AND ASK_DoctorID IN ( '710002563',
+                                                              '710003628',
+                                                              '710003629',
+                                                              '710003630',
+                                                              '710003631',
+                                                              '710003632',
+                                                              '710003633' )
+                                            AND QD_QuesType = 0
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  DAYS
+                    ) AS t2
+          WHERE     1 = 1
+        ) AS t3
+WHERE   1 = 1
+GROUP BY type1
+	</Sql>
+	
+	<Sql name="queReportForCity">
+	SELECT <!-- SUM(type2) AS '指定咨询' ,
+        SUM(type3) AS '指定咨询回答' ,
+        SUM(type4) AS '免费咨询' ,
+        SUM(type5) AS '免费咨询回答' , -->
+        SUM(type2) AS type2 ,
+        SUM(type3) AS type3 ,
+        SUM(type4) AS type4,
+        SUM(type5) AS type5 ,
+        type1 AS city
+FROM    ( SELECT    city AS type1 ,
+                    CASE WHEN contType = 1 THEN con
+                         ELSE 0
+                    END AS type2 ,
+                    CASE WHEN contType = 2 THEN con
+                         ELSE 0
+                    END AS type3 ,
+                    CASE WHEN contType = 3 THEN con
+                         ELSE 0
+                    END AS type4 ,
+                    CASE WHEN contType = 4 THEN con
+                         ELSE 0
+                    END AS type5 ,
+                    CASE WHEN contType = 5 THEN con
+                         ELSE 0
+                    END AS type6
+          FROM      ( SELECT    COUNT(*) AS con ,
+                                v1.ProvinceName AS city ,
+                                1 AS contType
+                      FROM      dbo.ZiXun_QuesMain
+                                LEFT JOIN ( SELECT  *
+                                            FROM    v_myt_doctorService
+                                            WHERE   Main = 1
+                                          ) AS v1 ON ASK_DoctorID = v1.DoctorUid
+                      WHERE     CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                                AND QD_SourceType = 0
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                      GROUP BY  ProvinceName
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                v1.ProvinceName AS city ,
+                                2 AS contType
+                      FROM      dbo.ZiXun_QuesMain AS t1
+                                INNER JOIN ( SELECT firstReplyTime ,
+                                                    ASK_QuesID
+                                             FROM   ( SELECT  MIN(REPLY_CreateTime) firstReplyTime ,
+                                                              ASK_QuesID
+                                                      FROM    dbo.ZiXun_reply
+                                                      WHERE   REPLY_UserType = 1
+                                                      GROUP BY ASK_QuesID
+                                                    ) AS rp1
+                                             WHERE  CONVERT(CHAR(7), rp1.firstReplyTime, 120) = @c
+                                           ) AS t2 ON t1.QUESMAIN_ID = t2.ASK_QuesID
+                                LEFT JOIN ( SELECT  *
+                                            FROM    v_myt_doctorService
+                                            WHERE   Main = 1
+                                          ) AS v1 ON t1.ASK_DoctorID = v1.DoctorUid
+                      WHERE     QD_SourceType = 0
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                                AND ASK_DoctorID NOT IN ( '710002563',
+                                                          '710003628',
+                                                          '710003629',
+                                                          '710003630',
+                                                          '710003631',
+                                                          '710003632',
+                                                          '710003633' )
+                      GROUP BY  v1.ProvinceName ,
+                                v1.CityName
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                ASK_ProvinceName AS city ,
+                                3 AS contType
+                      FROM      dbo.ZiXun_QuesMain
+                                LEFT JOIN ZiXun_Patient ON ASK_PatientID = PATIENT_ID
+                      WHERE     QD_SourceType = 1
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                                AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                      GROUP BY  ASK_ProvinceName ,
+                                ASK_CityName
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                v1.ProvinceName AS city ,
+                                4 AS contType
+                      FROM      dbo.ZiXun_QuesMain AS t1
+                                INNER JOIN ( SELECT firstReplyTime ,
+                                                    ASK_QuesID
+                                             FROM   ( SELECT  MIN(REPLY_CreateTime) firstReplyTime ,
+                                                              ASK_QuesID
+                                                      FROM    dbo.ZiXun_reply
+                                                      WHERE   REPLY_UserType = 1
+                                                      GROUP BY ASK_QuesID
+                                                    ) AS rp1
+                                             WHERE  CONVERT(CHAR(7), rp1.firstReplyTime, 120) = @c
+                                           ) AS t2 ON t1.QUESMAIN_ID = t2.ASK_QuesID
+                                LEFT JOIN ( SELECT  *
+                                            FROM    v_myt_doctorService
+                                            WHERE   Main = 1
+                                          ) AS v1 ON t1.ASK_DoctorID = v1.DoctorUid
+                      WHERE     QD_SourceType = 1
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                                AND ASK_DoctorID NOT IN ( '710002563',
+                                                          '710003628',
+                                                          '710003629',
+                                                          '710003630',
+                                                          '710003631',
+                                                          '710003632',
+                                                          '710003633' )
+                      GROUP BY  v1.ProvinceName ,
+                                v1.CityName
+                    ) AS r1
+          WHERE     1 = 1
+        ) AS r2
+WHERE   type1 IS NOT NULL
+GROUP BY type1
+
+
+	</Sql>
+	<Sql name="queReportForPlatform">
+	SELECT <!-- SUM(type2) AS '指定咨询',
+        SUM(type3) AS '指定咨询回答',
+        SUM(type4) AS '免费咨询',
+        SUM(type5) AS '免费咨询回答',
+         SUM(type6) AS '登陆次数', -->
+          SUM(type2) AS type2,
+        SUM(type3) AS type3,
+        SUM(type4) AS type4,
+        SUM(type5) AS type5,
+         SUM(type6) AS type6, 
+        type1 AS platfrom
+
+FROM    ( SELECT    CASE WHEN platfrom = 0 THEN 'APP'
+                         WHEN platfrom = 1 THEN 'WEB'
+                         ELSE '无边界'
+                    END AS type1 ,
+                    CASE WHEN contType = 1 THEN con
+                         ELSE 0
+                    END AS type2 ,
+                    CASE WHEN contType = 2 THEN con
+                         ELSE 0
+                    END AS type3 ,
+                    CASE WHEN contType = 3 THEN con
+                         ELSE 0
+                    END AS type4 ,
+                    CASE WHEN contType = 4 THEN con
+                         ELSE 0
+                    END AS type5 ,
+                    CASE WHEN contType = 5 THEN con
+                         ELSE 0
+                    END AS type6
+          FROM      ( SELECT    COUNT(*) AS con ,
+                                QUESMAIN_Platform AS platfrom ,
+                                1 AS contType
+                      FROM      dbo.ZiXun_QuesMain
+                      WHERE     QD_SourceType = 0
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                                AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                      GROUP BY  QUESMAIN_Platform
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                QUESMAIN_Platform AS platfrom ,
+                                2 AS contType
+                      FROM      dbo.ZiXun_QuesMain AS t1
+                                INNER JOIN ( SELECT firstReplyTime ,
+                                                    ASK_QuesID
+                                             FROM   ( SELECT  MIN(REPLY_CreateTime) firstReplyTime ,
+                                                              ASK_QuesID
+                                                      FROM    dbo.ZiXun_reply
+                                                      WHERE   REPLY_UserType = 1
+                                                      GROUP BY ASK_QuesID
+                                                    ) AS rp1
+                                             WHERE  CONVERT(CHAR(7), firstReplyTime, 120) = @c
+                                           ) AS t2 ON t1.QUESMAIN_ID = t2.ASK_QuesID
+                      WHERE     QD_SourceType = 0
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                      GROUP BY  QUESMAIN_Platform
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                QUESMAIN_Platform AS platfrom ,
+                                3 AS contType
+                      FROM      dbo.ZiXun_QuesMain
+                      WHERE     QD_SourceType = 1
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                                AND CONVERT(CHAR(7), QUESMAIN_CreateTime, 120) = @c
+                      GROUP BY  QUESMAIN_Platform
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                QUESMAIN_Platform AS platfrom ,
+                                4 AS contType
+                      FROM      dbo.ZiXun_QuesMain AS t1
+                                INNER JOIN ( SELECT firstReplyTime ,
+                                                    ASK_QuesID
+                                             FROM   ( SELECT  MIN(REPLY_CreateTime) firstReplyTime ,
+                                                              ASK_QuesID
+                                                      FROM    dbo.ZiXun_reply
+                                                      WHERE   REPLY_UserType = 1
+                                                      GROUP BY ASK_QuesID
+                                                    ) AS rp1
+                                             WHERE  CONVERT(CHAR(7), firstReplyTime, 120) = @c
+                                           ) AS t2 ON t1.QUESMAIN_ID = t2.ASK_QuesID
+                      WHERE     QD_SourceType = 1
+                                AND ( QD_OrdersStatus = 0
+                                      OR QD_OrdersStatus = 2
+                                    )
+                      GROUP BY  QUESMAIN_Platform
+                      UNION
+                      SELECT    COUNT(*) AS con ,
+                                CASE WHEN loginPlatform = 1 THEN 0
+                                     WHEN loginPlatform = 2 THEN 1
+                                     ELSE 2
+                                END AS platfrom ,
+                                5 AS contType
+                      FROM      ( SELECT DISTINCT
+                                            loginPlatform ,
+                                            LOGINLOG_UserID
+                                  FROM      [10.0.200.7].BaseInfo.dbo.DC_LoginLog
+                                  WHERE     CONVERT(CHAR(7), LOGINLOG_CreateTime, 120) = @c
+                                ) AS t1
+                      WHERE     1 = 1
+                      GROUP BY  loginPlatform
+                    ) AS r1
+          WHERE     1 = 1
+        ) AS r2
+GROUP BY type1
+ 
+	</Sql>
+	
+	<!-- WUJIAJUN  ADD -->
+	<Sql name="quesListForDoctorAnswerAndOverV2">
+	select * from (	
+	
+	SELECT   ROW_NUMBER() OVER ( ORDER BY overTime DESC ) rowid ,*
+			FROM    (   SELECT * from (  SELECT   
+			                    t1.* ,
+			                    CASE WHEN t2.CreateTime IS NULL
+			                         THEN t1.QUESMAIN_ExpiredTime
+			                         ELSE t2.CreateTime
+			                    END AS overTime ,
+			                    CASE WHEN t1.QD_SourceType = 0
+				                              AND QD_Price=0 AND (t2.OperType = 2 or  t2.OperType =1) THEN 1
+				                         ELSE 0
+				                END AS qeStatus ,
+			                    t2.OperType ,
+			                    t2.QuesID ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN  cr1.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFavorable ,
+			                    CASE WHEN cr2.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS iffirstLoveValue ,
+			                    CASE WHEN cr3.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFreeLoveValue ,
+			                    v.DoctorName
+			          FROM      dbo.ZiXun_QuesMain AS t1
+			                    LEFT JOIN dbo.ZiXun_QuesCloseWater AS t2 ON t1.QUESMAIN_ID = t2.QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = t1.ASK_PatientID
+			                    LEFT JOIN ( SELECT 
+			                                       DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 1
+			                              ) AS cr1 ON t1.QUESMAIN_ID = cr1.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 2
+			                              ) AS cr2 ON t1.QUESMAIN_ID = cr2.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 3
+			                              ) AS cr3 ON t1.QUESMAIN_ID = cr3.ASK_QuesID
+			                    LEFT JOIN dbo.v_myt_doctorService v ON v.DoctorUid = t1.ASK_DoctorID
+			          WHERE     ( QD_Status = 1
+			                      OR QD_Status = 2
+			                    )
+			                     AND v.Main = 1
+			     @c     ) AS yy	LEFT JOIN ZIXUN_OpenAuth AS jj ON yy.quesmain_id = jj.QuesMainId ) AS t3
+			WHERE   1 = 1   
+			) as t5 where 1=1
+			 @p
+		</Sql>
+		
+		
+		
+		<Sql name="quesListForDoctorAnswerNoOverV2">
+		
+			select * from (
+				SELECT  * from (
+			SELECT ROW_NUMBER() OVER ( ORDER BY  lastTime DESC ,
+			QD_SourceType ASC , QUESMAIN_CreateTime ASC ) rowid ,q1.*
+			,p1.ASK_CityID,p1.ASK_CityName,p1.ASK_ProvinceID,p1.ASK_ProvinceName,
+			p1.PATIENT_Birth,p1.PATIENT_CreateTime,p1.PATIENT_Name,p1.PATIENT_Sex,p1.PATIENT_Status,t3.lastTime
+			FROM dbo.ZiXun_QuesMain as q1
+			LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			LEFT JOIN (SELECT ASK_QuesID,MAX(REPLY_CreateTime)AS lastTime FROM dbo.ZiXun_Reply WHERE REPLY_UserType = 1  GROUP BY ASK_QuesID) AS t3 ON t3.ASK_QuesID = q1.QUESMAIN_ID
+			WHERE QD_DocReplayCount > 0
+			AND QD_IsUserReplay = 0
+			and QD_Status != 1
+			AND  QD_Status != 2
+			@c      ) as yy LEFT JOIN  ZIXUN_OpenAuth as jj ON yy.quesmain_id =jj.QuesMainId ) as t1 where 1=1 @p
+		</Sql> 
+		
+		
+		
+		
+		<Sql name="quesListForDoctorWaitAnswerForNoFreeQueV2">		
+		select  * from (  
+	
+		
+		
+			SELECT       ROW_NUMBER() OVER ( ORDER BY QD_SourceType ASC  , (case when QD_DocReplayCount > 0 then 1 else 2 end)  ASC, waitTime desc ,QUESMAIN_CreateTime asc  ) rowid ,
+			                   *
+			FROM    (	SELECT  * from (     select DISTINCT q1.* ,
+			                    r1.* ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN q1.QD_SourceType = 0 and q1.QD_DocReplayCount =0 THEN '指定我的'
+			                         WHEN q1.QD_SourceType = 1 and     q1.QD_DocReplayCount =0 THEN '来自公共咨询'
+			                         ELSE  '追问'
+			                    END AS sourceMemo ,
+			                    CASE WHEN q1.QD_SourceType = 0
+			                           and  GETDATE()  >  QUESMAIN_ExpiredTime  THEN '已超时'  
+			                         ELSE '未超时'
+			                    END AS queStatus ,
+			                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                   CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck,
+				               CASE WHEN r1.REPLY_CreateTime IS NULL THEN q1.QUESMAIN_CreateTime
+                         ELSE r1.REPLY_CreateTime
+                    END AS waitTime
+			          FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                 	LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE      QUESMAIN_Status = 1
+			                      AND ( QD_CheckStatus = 1
+			                            OR QD_CheckStatus = 3
+			                          )
+			                      AND QD_Status = 0
+			                      AND ( QD_OrdersStatus = 2
+			                            OR QD_OrdersStatus = 0
+			                            OR QD_OrdersStatus = 5
+			                          )
+			                      AND ( ( QD_SourceType = 0
+			                              AND QD_IsUserReplay = 1
+			                            )
+			                            OR ( QD_SourceType = 1
+			                                 AND 0 >= DATEDIFF(MINUTE,
+			                                                   QD_RecordExpiredTime,
+			                                                   GETDATE())
+			                                 AND QD_DocReplayCount = 0
+			                               )
+			                            OR (QD_SourceType = 1
+			                                 AND QD_DocReplayCount > 0
+			                                 AND QD_IsReplay = 0
+			                                 AND QD_IsUserReplay =1
+			                               )
+			                          )
+			                       @c
+			                  
+			                  
+			       ) AS yy 		LEFT JOIN ZIXUN_OpenAuth AS jj ON yy.quesmain_id = jj.QuesMainId ) AS t1
+			WHERE   1 = 1      ) as t5 where 1=1 @p
+					</Sql>
+		
+		
+		
+		
+		<Sql name="quesListForDoctorWaitAnswerFreeQuesV2">		
+		select  * from (  
+		
+			SELECT       ROW_NUMBER() OVER ( ORDER BY  @order    QD_SourceType ASC  , (case when QD_DocReplayCount > 0 then 1 else 2 end)  ASC, waitTime desc ,QUESMAIN_CreateTime asc  ) rowid ,
+			                   *
+			FROM    ( 	select  * from (       select DISTINCT q1.* ,
+			                    r1.* ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                     p1.ASK_ProvinceID AS  provinceID,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN q1.QD_SourceType = 0 and q1.QD_DocReplayCount =0 THEN '指定我的'
+			                         WHEN q1.QD_SourceType = 1 and     q1.QD_DocReplayCount =0 THEN '来自公共咨询'
+			                         ELSE  '追问'
+			                    END AS sourceMemo ,
+			                    CASE WHEN q1.QD_SourceType = 0
+			                           and  GETDATE()  >  QUESMAIN_ExpiredTime  THEN '已超时'  
+			                         ELSE '未超时'
+			                    END AS queStatus ,
+			                    CASE WHEN q1.QD_SourceType = 0
+				                              AND GETDATE() > QUESMAIN_ExpiredTime THEN 1
+				                         ELSE 0
+				                    END AS qeStatus ,
+				                   CASE WHEN QUESMAIN_Status = 1
+				                              AND QD_CheckStatus = 1
+				                              AND ( ASK_DoctorID = 0
+				                                    OR ( ASK_DoctorID > 0
+				                                         AND DATEDIFF(MINUTE,
+				                                                      QD_RecordExpiredTime,
+				                                                      GETDATE()) > 0
+				                                         AND QD_DocReplayCount = 0
+				                                       )
+				                                  ) THEN 0
+				                         ELSE 1
+				                    END AS ifCheck,
+				               CASE WHEN r1.REPLY_CreateTime IS NULL THEN q1.QUESMAIN_CreateTime
+                         ELSE r1.REPLY_CreateTime
+                    END AS waitTime
+			          FROM      dbo.ZiXun_QuesMain AS q1
+			                    LEFT JOIN ( SELECT  REPLY_Content ,
+			                                        ASK_QuesID ,
+			                                        REPLY_Type,
+			                                         REPLY_CreateTime
+			                                FROM    ZiXun_Reply t
+			                                WHERE   REPLY_ID = ( SELECT TOP 1
+			                                                            REPLY_ID
+			                                                     FROM   ZiXun_Reply
+			                                                     WHERE  ASK_QuesID = t.ASK_QuesID
+			                                                            AND REPLY_UserType = 2
+			                                                     ORDER BY REPLY_CreateTime DESC
+			                                                   )
+			                              ) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+			                 	LEFT JOIN  ( select * from  dbo.ZiXun_Disease where DISEASE_Status = 1 )  AS d ON  d.ASK_QuesID = q1.QUESMAIN_ID 
+			          WHERE           QUESMAIN_Status = 1
+			                         AND QD_SourceType = 1
+			                         @d
+			                         AND ( QD_CheckStatus = 1
+			                               OR QD_CheckStatus = 3
+			                             )
+			                         AND QD_SourceType = 1
+			                         AND QD_IsReplay = 0
+			                         AND QD_IsUserReplay = 1
+			                         AND QD_Status = 0
+			                         AND QD_DocReplayCount = 0
+			                         AND ( ASK_DoctorID = 0
+			                               OR ( ASK_DoctorID > 0
+			                                    AND DATEDIFF(MINUTE, QD_RecordExpiredTime,
+			                                                 GETDATE()) > 0
+			                                  )
+			                             )
+			                         AND QD_SourceType = 1
+			                       
+			        ) as yy LEFT JOIN  ZIXUN_OpenAuth as jj ON yy.quesmain_id =jj.QuesMainId) AS t1
+			WHERE   1 = 1         ) as t5 where 1=1 @p
+					</Sql>
+		
+	
+	
+	<!-- 报表 -->
+	
+	
+	<Sql    name="quesListForDoctorAnswerAndOverCountForUser">
+	select count(*) from(
+
+SELECT  ROW_NUMBER() OVER ( ORDER BY overTime DESC ) rowid ,* from (
+	
+	SELECT  * from (
+	
+	SELECT   *
+			FROM    ( SELECT   
+			                    t1.* ,
+			                    CASE WHEN t2.CreateTime IS NULL
+			                         THEN t1.QUESMAIN_ExpiredTime
+			                         ELSE t2.CreateTime
+			                    END AS overTime ,
+			                    CASE WHEN t1.QD_SourceType = 0
+				                              AND QD_Price=0 AND (t2.OperType = 2 or  t2.OperType =1) THEN 1
+				                         ELSE 0
+				                END AS qeStatus ,
+			                    t2.OperType ,
+			                    t2.QuesID ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN  cr1.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFavorable ,
+			                    CASE WHEN cr2.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS iffirstLoveValue ,
+			                    CASE WHEN cr3.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFreeLoveValue ,
+			                    v.DoctorName
+			          FROM      dbo.ZiXun_QuesMain AS t1
+			                    LEFT JOIN dbo.ZiXun_QuesCloseWater AS t2 ON t1.QUESMAIN_ID = t2.QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = t1.ASK_PatientID
+			                    LEFT JOIN ( SELECT 
+			                                       DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 1
+			                              ) AS cr1 ON t1.QUESMAIN_ID = cr1.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 2
+			                              ) AS cr2 ON t1.QUESMAIN_ID = cr2.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 3
+			                              ) AS cr3 ON t1.QUESMAIN_ID = cr3.ASK_QuesID
+			                    LEFT JOIN dbo.v_myt_doctorService v ON v.DoctorUid = t1.ASK_DoctorID
+			          WHERE     ( QD_Status = 1
+			                      OR QD_Status = 2
+			                    )
+			                     AND v.Main = 1
+			     @c   ) AS t3
+			WHERE   1 = 1   ) as yy LEFT JOIN  ZIXUN_OpenAuth as jj ON yy.quesmain_id =jj.QuesMainId
+			  )as zz WHERE  1=1 AND zz.openauthflag='O' )as  uu
+	
+	</Sql>
+		<Sql    name="quesListForDoctorAnswerAndOverV2ForUser">
+		
+		
+select * from (
+
+SELECT  ROW_NUMBER() OVER ( ORDER BY overTime DESC ) rowid ,* from (
+	
+	SELECT  * from (
+	
+	SELECT   *
+			FROM    ( SELECT   
+			                    t1.* ,
+			                    CASE WHEN t2.CreateTime IS NULL
+			                         THEN t1.QUESMAIN_ExpiredTime
+			                         ELSE t2.CreateTime
+			                    END AS overTime ,
+			                    CASE WHEN t1.QD_SourceType = 0
+				                              AND QD_Price=0 AND (t2.OperType = 2 or  t2.OperType =1) THEN 1
+				                         ELSE 0
+				                END AS qeStatus ,
+			                    t2.OperType ,
+			                    t2.QuesID ,
+			                    p1.ASK_CityID ,
+			                    p1.ASK_CityName ,
+			                    p1.ASK_ProvinceID ,
+			                    p1.ASK_ProvinceName ,
+			                    p1.PATIENT_Birth ,
+			                    p1.PATIENT_CreateTime ,
+			                    p1.PATIENT_Name ,
+			                    p1.PATIENT_Sex ,
+			                    p1.PATIENT_Status ,
+			                    CASE WHEN  cr1.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFavorable ,
+			                    CASE WHEN cr2.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS iffirstLoveValue ,
+			                    CASE WHEN cr3.ASK_QuesID IS NOT NULL THEN 1
+			                         ELSE 0
+			                    END AS ifFreeLoveValue ,
+			                    v.DoctorName
+			          FROM      dbo.ZiXun_QuesMain AS t1
+			                    LEFT JOIN dbo.ZiXun_QuesCloseWater AS t2 ON t1.QUESMAIN_ID = t2.QuesID
+			                    LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = t1.ASK_PatientID
+			                    LEFT JOIN ( SELECT 
+			                                       DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 1
+			                              ) AS cr1 ON t1.QUESMAIN_ID = cr1.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 2
+			                              ) AS cr2 ON t1.QUESMAIN_ID = cr2.ASK_QuesID
+			                    LEFT JOIN ( SELECT 
+			                                        DISTINCT ASK_QuesID
+			                                FROM    ZiXun_CreditsRecord
+			                                WHERE   CR_Type = 3
+			                              ) AS cr3 ON t1.QUESMAIN_ID = cr3.ASK_QuesID
+			                    LEFT JOIN dbo.v_myt_doctorService v ON v.DoctorUid = t1.ASK_DoctorID
+			          WHERE     ( QD_Status = 1
+			                      OR QD_Status = 2
+			                    )
+			                     AND v.Main = 1
+			     @c   ) AS t3
+			WHERE   1 = 1   ) as yy LEFT JOIN  ZIXUN_OpenAuth as jj ON yy.quesmain_id =jj.QuesMainId
+			  )as zz WHERE  1=1 AND zz.openauthflag='O' ) as t5 where 1=1
+			 @p   order by  overtime desc   
+	</Sql>
+
+	
+	
+	
+	</Sqls>
+</das-client>

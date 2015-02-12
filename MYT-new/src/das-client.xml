@@ -1,0 +1,1206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<das-client>
+	<!--数据访问网关地址 -->
+	<!--数据访问网关地址10.0.100.154:2181(正式网关); 172.18.20.21:2181(测试网关) -->
+	<das-url>172.18.20.21:2181</das-url>
+	<Sqls>
+	
+	<!-- 2014-10-21  wujiajun -->
+	<!-- 咨询问题数据统计   by 医生 -->
+	
+		<Sql name='getDoctorMessageById'><![CDATA[
+		
+		
+			SELECT
+				x.hosname,
+     x.doctorname,
+       x.deptname
+
+			FROM
+				(
+					SELECT
+						*
+					FROM
+						v_myt_doctorService a
+					WHERE
+						DoctorSN = (
+							SELECT
+								MIN (DoctorSN)
+							FROM
+								v_myt_doctorService
+							WHERE
+								DoctorUid = a.DoctorUid
+						)
+				) x where  1=1   @such
+		
+		]]></Sql>
+	
+	
+	
+	
+	
+	
+	<Sql name='getDoctorMessage'><![CDATA[
+SELECT
+			oo.docidone,
+			oo.docidtwo,
+			ll.idone,
+			ll.idtwo,
+			ll.numone AS toallcount,
+			ll.backcount AS tobackcount,
+			oo.timeone AS tomin,
+			ll.numtwo AS puballcount,
+			oo.timetwo AS pubmin
+		FROM
+			(
+				SELECT
+					a.ASK_DoctorID AS docidone,
+					a.docRplyTime AS timeone,
+					b.ASK_DoctorID AS docidtwo,
+					b.docRplyTime AS timetwo
+				FROM
+					(
+						SELECT
+							ASK_DoctorID,
+							SUM (minTime) / COUNT (ASK_DoctorID) AS docRplyTime
+						FROM
+							(
+								SELECT
+									ASK_DoctorID,
+									DATEDIFF(
+										mi,
+										QUESMAIN_CreateTime,
+										firstReplyTime
+									) AS minTime,
+									q1.QD_SourceType
+								FROM
+									(
+										SELECT
+											firstReplyTime,
+											ASK_QuesID
+										FROM
+											(
+												SELECT
+													MIN (REPLY_CreateTime) firstReplyTime,
+													ASK_QuesID
+												FROM
+													dbo.ZiXun_reply
+												WHERE
+													REPLY_UserType = 1
+												GROUP BY
+													ASK_QuesID
+											) AS rp1
+										WHERE
+											CONVERT (
+												CHAR (10),
+												firstReplyTime,
+												120
+											) = CONVERT (CHAR(10), GETDATE() - 1, 120)
+									) AS t2
+								LEFT JOIN dbo.ZiXun_QuesMain AS q1 ON q1.QUESMAIN_ID = t2.ASK_QuesID
+								WHERE
+									QD_SourceType = 0
+							) AS t3
+						GROUP BY
+							ASK_DoctorID
+					) AS a
+				FULL OUTER JOIN (
+					SELECT
+						ASK_DoctorID,
+						SUM (minTime) / COUNT (ASK_DoctorID) AS docRplyTime
+					FROM
+						(
+							SELECT
+								ASK_DoctorID,
+								DATEDIFF(
+									mi,
+									QUESMAIN_CreateTime,
+									firstReplyTime
+								) AS minTime,
+								q1.QD_SourceType
+							FROM
+								(
+									SELECT
+										firstReplyTime,
+										ASK_QuesID
+									FROM
+										(
+											SELECT
+												MIN (REPLY_CreateTime) firstReplyTime,
+												ASK_QuesID
+											FROM
+												dbo.ZiXun_reply
+											WHERE
+												REPLY_UserType = 1
+											GROUP BY
+												ASK_QuesID
+										) AS rp1
+									WHERE
+										CONVERT (
+											CHAR (10),
+											firstReplyTime,
+											120
+										) = CONVERT (CHAR(10), GETDATE() - 1, 120)
+								) AS t2
+							LEFT JOIN dbo.ZiXun_QuesMain AS q1 ON q1.QUESMAIN_ID = t2.ASK_QuesID
+							WHERE
+								QD_SourceType = 1
+						) AS t3
+					GROUP BY
+						ASK_DoctorID
+				) AS b ON a.ASK_DoctorID = b.ASK_DoctorID
+			) AS oo
+		FULL OUTER JOIN (
+			SELECT
+				m.ASK_DoctorID AS idone,
+				m.num AS numone,
+				m.backcount,
+				n.ASK_DoctorID AS idtwo,
+				n.num AS numtwo
+			FROM
+				(
+					SELECT
+						a.ASK_DoctorID,
+						a.num,
+						b.num AS backcount
+					FROM
+						(
+							SELECT
+								ASK_DoctorID,
+								COUNT (ASK_DoctorID) AS num
+							FROM
+								ZiXun_QuesMain
+							WHERE
+								QD_SourceType = 0
+							GROUP BY
+								ASK_DoctorID
+						) AS a
+					FULL OUTER JOIN (
+						SELECT
+							ASK_DoctorID,
+							COUNT (ASK_DoctorID) AS num
+						FROM
+							ZiXun_QuesMain
+						WHERE
+							QD_SourceType = 0
+						AND QD_IsReplay = 1
+						GROUP BY
+							ASK_DoctorID
+					) AS b ON a.ASK_DoctorID = b.ASK_DoctorID
+				) m
+			FULL OUTER JOIN (
+				SELECT
+					ASK_DoctorID,
+					COUNT (ASK_DoctorID) AS num
+				FROM
+					ZiXun_QuesMain
+				WHERE
+					QD_SourceType = 1
+				GROUP BY
+					ASK_DoctorID
+			) n ON m.ASK_DoctorID = n.ASK_DoctorID
+		) AS ll ON oo.docidone = ll.idone
+	
+
+		]]></Sql>
+		
+			<!-- 2014-10-21  wujiajun -->
+			<!-- 咨询问题数据统计     by 科室 -->
+	<Sql name='getAllMessage'><![CDATA[
+			select * from DC_DoctorAccount @p
+		]]></Sql>
+	
+	
+	
+	
+
+		<!--统计需求结果集 -->
+		<Sql name="finConsstatisticResult"><![CDATA[
+SELECT
+	x.DoctorName AS name,
+	table1.num1 AS countone,
+	table2.num2 AS counttwo,
+    table3.num3 AS countthree,
+    	table4.num4 AS countfour,
+	table5.num5 AS countfive
+FROM
+	dbo.Member_UsersDocrot x
+LEFT JOIN (
+	SELECT
+		d.DoctorName AS name1,
+		COUNT (1) AS num1
+	FROM
+		(
+			SELECT
+				a.QUESMAIN_ID,
+				MAX (a.ASK_DoctorID) AS doctorid
+			FROM
+				dbo.ZiXun_QuesMain AS a
+			INNER JOIN dbo.ZiXun_Reply AS b ON a.QUESMAIN_ID = b.ASK_QuesID
+			WHERE
+				b.REPLY_UserType = 1
+			AND a.QD_DocReplayCount > 0
+			AND a.QD_SourceType = 1    @pone
+			GROUP BY
+				a.QUESMAIN_ID
+		) AS c
+	INNER JOIN dbo.Member_UsersDocrot AS d ON c.doctorid = d.DoctorID
+	GROUP BY
+		d.DoctorName
+) table1 ON x.DoctorName = table1.name1
+LEFT JOIN (
+	SELECT
+		d.DoctorName AS name2,
+		COUNT (1) AS num2
+	FROM
+		(
+			SELECT
+				a.QUESMAIN_ID,
+				MAX (a.ASK_DoctorID) AS doctorid
+			FROM
+				dbo.ZiXun_QuesMain AS a
+			INNER JOIN dbo.ZiXun_Reply AS b ON a.QUESMAIN_ID = b.ASK_QuesID
+			WHERE
+				b.REPLY_UserType = 1
+			AND a.QD_DocReplayCount > 0
+			AND a.QD_SourceType = 0     @ptwo
+			GROUP BY
+				a.QUESMAIN_ID
+		) AS c
+	INNER JOIN dbo.Member_UsersDocrot AS d ON c.doctorid = d.DoctorID
+	GROUP BY
+		d.DoctorName
+) table2 ON x.DoctorName = table2.name2
+LEFT JOIN (
+	SELECT
+		DOCNAME AS name3,
+		COUNT (1) AS num3
+	FROM
+		dbo.ZIXUN_CLOSEMAIN       where 1=1 @pthree
+	GROUP BY
+		DOCNAME
+) table3 ON x.DoctorName = table3.name3
+
+
+LEFT JOIN (
+	SELECT
+		docName AS name4,
+		COUNT (departMent) AS num4
+	FROM
+		dbo.ZIXUN_KESHIJIBING  where 1=1 @pfour
+	GROUP BY
+		docName
+) table4 ON x.DoctorName = table4.name4
+
+
+LEFT JOIN (
+	SELECT
+		docName AS name5,
+		COUNT (disease) AS num5
+	FROM
+		dbo.ZIXUN_KESHIJIBING    where 1=1  @pfive
+	GROUP BY
+		docName
+) table5 ON x.DoctorName = table5.name5
+
+
+
+		ORDER BY  name ASC
+		
+		]]>
+		</Sql>
+
+		<!--统计需求结果集 数量 -->
+		<Sql name="finConsstatisticCount"><![CDATA[
+
+SELECT
+    count(1)
+FROM
+	dbo.Member_UsersDocrot x
+LEFT JOIN (
+	SELECT
+		d.DoctorName AS name1,
+		COUNT (1) AS num1
+	FROM
+		(
+			SELECT
+				a.QUESMAIN_ID,
+				MAX (a.ASK_DoctorID) AS doctorid
+			FROM
+				dbo.ZiXun_QuesMain AS a
+			INNER JOIN dbo.ZiXun_Reply AS b ON a.QUESMAIN_ID = b.ASK_QuesID
+			WHERE
+				b.REPLY_UserType = 1
+			AND a.QD_DocReplayCount > 0
+			AND a.QD_SourceType = 1  @pone
+			GROUP BY
+				a.QUESMAIN_ID
+		) AS c
+	INNER JOIN dbo.Member_UsersDocrot AS d ON c.doctorid = d.DoctorID
+	GROUP BY
+		d.DoctorName
+) table1 ON x.DoctorName = table1.name1
+LEFT JOIN (
+	SELECT
+		d.DoctorName AS name2,
+		COUNT (1) AS num2
+	FROM
+		(
+			SELECT
+				a.QUESMAIN_ID,
+				MAX (a.ASK_DoctorID) AS doctorid
+			FROM
+				dbo.ZiXun_QuesMain AS a
+			INNER JOIN dbo.ZiXun_Reply AS b ON a.QUESMAIN_ID = b.ASK_QuesID
+			WHERE
+				b.REPLY_UserType = 1
+			AND a.QD_DocReplayCount > 0
+			AND a.QD_SourceType = 0    @ptwo
+			GROUP BY
+				a.QUESMAIN_ID
+		) AS c
+	INNER JOIN dbo.Member_UsersDocrot AS d ON c.doctorid = d.DoctorID
+	GROUP BY
+		d.DoctorName
+) table2 ON x.DoctorName = table2.name2
+LEFT JOIN (
+	SELECT
+		DOCNAME AS name3,
+		COUNT (1) AS num3
+	FROM
+		dbo.ZIXUN_CLOSEMAIN     WHERE 1=1  @pthree
+	GROUP BY
+		DOCNAME
+) table3 ON x.DoctorName = table3.name3
+	 where ( table1.num1 IS NOT NULL
+                                      OR table2.num2 IS NOT NULL  OR table3.num3 IS NOT NULL
+                                    )
+		]]>
+		</Sql>
+
+
+		<!--不结算医生当前待结算帐单 -->
+		<Sql name="unsettled"><![CDATA[
+			UPDATE MYT_CHARGE a 
+			SET a.ifout = '6' 
+			AND remark = '本次不结算('+opmonth+'月)' 
+			WHERE a.doctorid in (?) 
+			AND a.ifout = '7'
+		]]>
+		</Sql>
+		<!--已结算医生当前帐单 -->
+		<Sql name="settled"><![CDATA[
+			UPDATE MYT_CHARGE a 
+			SET a.ifout = '8' 
+			AND remark = remark + '已结算' 
+			WHERE a.doctorid in (?) 
+			AND a.ifout = '7'
+		]]>
+		</Sql>
+		<!--查询医生排班总记录集 -->
+
+		<Sql name="getArraworkResult"><![CDATA[
+			SELECT * FROM BOSS.MYT_ARRAWORK a @p
+		]]>
+		</Sql>
+		<!-- 查询医生排班总记录数 -->
+		<Sql name="getArraworkCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_ARRAWORK a
+		]]>
+		</Sql>
+		<!--获取医生停诊记录集 -->
+
+		<Sql name="getPauseworkResult"><![CDATA[
+			SELECT PAUSEID, OPERCONFID, DOCTORID, ORGNAME,
+				   DOCTORNAME, HOSPOFFICEID, HOSPOFFICENAME, STARTTIME, ENDTIME, 
+				   convert(varchar,STARTDATE,23) STARTDATE, convert(varchar,ENDDATE,23) ENDDATE,
+				   OPERATORID, OPERATORNAME, convert(varchar,OPERTIME,20) OPERTIME, 
+				   ORGID, CITYID, STATE, REMARK 
+			FROM BOSS.MYT_PAUSEWORK_VIEW @p
+		]]>
+		</Sql>
+		<!--获取医生停诊记录数 -->
+		<Sql name="getPauseworkStone"><![CDATA[
+	        select PAUSEID,
+	               OPERCONFID,
+	               DOCTORID,
+	               STARTTIME, 
+	               ENDTIME, 
+                   STARTDATE,
+                   ENDDATE,
+	               OPERATORID,
+	               OPERATORNAME,
+	               OPERTIME,
+	               STATE,
+	               REMARK
+	          FROM MYT_PAUSEWORK @p 
+		]]></Sql>
+		<Sql name="getPauseworkCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_PAUSEWORK_View @p
+		]]>
+		</Sql>
+		<!--获取预约回复记录集 -->
+
+		<Sql name="getBookenrolResult"><![CDATA[
+			SELECT orgname,cardid,custname,revertphone,hospofficename,doctorname,remark,opertime,
+			dateweek,revertresult,operconfid,bookenrolid FROM BOSS.MYT_BOOKENROL_VIEW a @p
+		]]>
+		</Sql>
+		<Sql name="getBookenrolResultS"><![CDATA[
+			SELECT * FROM BOSS.MYT_BOOKENROL a @p
+		]]>
+		</Sql>
+		<!-- 获取预约回复记录数 -->
+
+		<Sql name="getBookenrolCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_BOOKENROL_VIEW  a @p
+		]]>
+
+		</Sql>
+		<Sql name="getBookenrolCountS"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_BOOKENROL  a @p
+		]]>
+
+		</Sql>
+
+		<!--获取咨询计费流水记录集 -->
+
+		<Sql name="getConswaterResult"><![CDATA[
+			SELECT * FROM BOSS.MYT_CONSWATER a @p 
+		]]>
+		</Sql>
+		<!-- 获取咨询计费流水记录数 -->
+
+		<Sql name="getConswaterCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_CONSWATER a @p 
+		]]>
+		</Sql>
+		<!--咨询流水登记记录集 -->
+
+		<Sql name="getConsenrolResult"><![CDATA[
+			SELECT a.custphone ,b.hospofficename,b.orgname, a.opertime,a.cardid,b.doctorname,a.constype,a.turnresult,a.turndefeat,a.isrevert,a.operatorname,a.remark
+			 FROM BOSS.MYT_CONSENROL a,myt_doctor_view b  WHERE a.state=1 and a.operconfid=b.operconfid    @p 
+		]]>
+		</Sql>
+		<!--咨询流水登记记录数 -->
+
+		<Sql name="getConsenrolCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_CONSENROL a,myt_doctor_view b  WHERE a.state=1 and a.operconfid=b.operconfid @p 
+		]]>
+		</Sql>
+		<!--名医通科室信息 -->
+
+		<Sql name="getDeptByOrg"><![CDATA[
+			SELECT CONVERT(varchar(100),a.HOSPOFFICEID) deptid, a.HOSPOFFICENAME deptname, '0' isintro 
+			FROM BOSS.MYT_DOCTOR_VIEW a 
+			WHERE a.ORGID = ? 
+			AND a.STATE = 1 and a.HOSPOFFICEID is not null and a.hospofficename is not null
+			GROUP BY a.HOSPOFFICEID, a.HOSPOFFICENAME, a.SEQUENCE 
+			ORDER BY a.SEQUENCE
+		]]>
+		</Sql>
+		<!--名医通科室信息 -->
+
+		<Sql name="getDoctorByOrgAndDept"><![CDATA[
+			select operconfid,doctorname from myt_doctor_view where state=1 and orgid=? @p order by doctorname
+		]]></Sql>
+		<!--获取医生视图信息 -->
+
+		<Sql name="getDoctor"><![CDATA[
+			SELECT * FROM BOSS.MYT_DOCTOR_VIEW a @p 
+		]]>
+		</Sql>
+		<!--获取医生排班信息 -->
+
+		<Sql name="getArrawork"><![CDATA[
+			SELECT TOP 1 a.ARRAWORKID FROM BOSS.MYT_ARRAWORK a 
+			WHERE a.OPERCONFID = ? 
+			AND a.STATE = ? 
+			AND a.WEEKID = ? 
+			AND a.STARTTIME <= ? 
+			AND a.ENDTIME >= ? 
+		]]>
+		</Sql>
+		<!-- 获取医生停诊信息 -->
+
+		<Sql name="getPausework"><![CDATA[
+			SELECT TOP 1 a.PAUSEID FROM BOSS.MYT_PAUSEWORK a 
+			WHERE a.OPERCONFID = ? 
+			AND a.STATE = ? 
+			AND a.STARTDATE <= ? 
+			AND a.ENDDATE >= ? 
+			AND a.STARTTIME <= ? 
+			AND a.ENDTIME >= ? 
+		]]>
+
+		</Sql>
+		<Sql name="getPauseworkValue"><![CDATA[
+			SELECT TOP 1  CONVERT(CHAR(10), STARTDATE, 120) STARTDATE,
+		        CONVERT(CHAR(10), ENDDATE, 120) ENDDATE,
+		        CONVERT(CHAR(5), STARTTIME, 120) STARTTIME,
+		        CONVERT(CHAR(5), ENDTIME, 120) ENDTIME,
+		        PAUSEID  
+		    FROM BOSS.MYT_PAUSEWORK a 
+	        WHERE a.OPERCONFID = ? 
+				AND a.STATE = ? 
+				AND a.STARTDATE <= ? 
+				AND a.ENDDATE >= ? 
+				AND a.STARTTIME <= ? 
+				AND a.ENDTIME >= ? 						
+		]]>
+
+		</Sql>
+		<Sql name="getArraworks"><![CDATA[
+		SELECT   o.OPERCONFID ,
+                CASE WHEN w.OPERCONFID IS NOT NULL THEN 1
+                     ELSE 0
+                END aw,
+                 CASE WHEN p.OPERCONFID IS NOT NULL THEN 1
+                     ELSE 0
+                END pa
+       FROM     boss.MYT_OPERCONFIG AS o
+                LEFT JOIN ( SELECT DISTINCT
+                                    a.OPERCONFID
+                            FROM    BOSS.MYT_ARRAWORK a
+                           WHERE  a.STATE = ? 
+							AND a.WEEKID = ? 
+							AND a.STARTTIME <= ? 
+							AND a.ENDTIME >= ? 
+                                    AND operconfid IS NOT NULL
+                          ) AS w ON o.OPERCONFID = w.OPERCONFID
+                           LEFT JOIN (SELECT DISTINCT  b.OPERCONFID FROM BOSS.MYT_PAUSEWORK b 
+			WHERE   b.STATE = ? 
+			AND b.STARTDATE <= ? 
+			AND b.ENDDATE >= ? 
+			AND b.STARTTIME <= ? 
+			AND b.ENDTIME >= ? ) AS p ON o.OPERCONFID = p.OPERCONFID  
+       ORDER BY p.OPERCONFID,w.OPERCONFID DESC 
+		]]>
+		</Sql>
+		<!-- 获取医生停诊信息 -->
+
+		<Sql name="getPauseworks"><![CDATA[
+			SELECT   a.OPERCONFID FROM BOSS.MYT_PAUSEWORK a 
+			WHERE   a.STATE = ? 
+			AND a.STARTDATE <= ? 
+			AND a.ENDDATE >= ? 
+			AND a.STARTTIME <= ? 
+			AND a.ENDTIME >= ? 
+		]]>
+		</Sql>
+
+
+
+		<Sql name="getArraworkListAndOnline"><![CDATA[
+			SELECT  a.arraworkid ID ,
+			        a.DoctorID ,
+			        a.OperConfID ,
+			        a.operconfid MYTDoctorSN ,
+			        a.weekid Week ,
+			        a.starttime BeginTime ,
+			        a.endtime EndTime ,
+			        ( SELECT    COUNT(DISTINCT operconfid)
+			          FROM      boss.myt_arrawork
+			          WHERE     state = 1
+			                    AND operconfid = a.operconfid
+			                    AND starttime <= SUBSTRING(CONVERT(VARCHAR, GETDATE(), 8),
+			                                               1, 5)
+			                    AND starttime = a.starttime
+			                    AND endtime = a.endtime
+			                    AND weekid = ?
+			                    AND endtime >= SUBSTRING(CONVERT(VARCHAR, GETDATE(), 8), 1,
+			                                             5)
+			                    AND weekid = a.weekid
+			        ) OnLine
+			FROM    boss.Myt_Arrawork a
+			WHERE   a.state = 1
+			        AND a.operconfid =?
+			        
+			ORDER BY a.weekid ,
+			        a.starttime
+
+			]]>
+		</Sql>
+		<!--获取医生主要简介 -->
+
+		<Sql name="getMainintrodoctor"><![CDATA[
+			SELECT * FROM BOSS.MYT_MAININTRODOCTOR a 
+			WHERE a.STATE = ? 
+			AND a.OPERCONFID = ? 
+			AND a.ENDDATE > getdate() 
+			ORDER BY a.MAININTRODOCTORID DESC 
+		]]>
+		</Sql>
+
+		<Sql name="getMaskPausework"><![CDATA[
+			SELECT * FROM BOSS.MYT_PAUSEWORK a 
+			WHERE a.STATE = 1 
+			AND a.STARTDATE + a.STARTTIME <= GETDATE() 
+			AND a.ENDDATE + a.ENDTIME >= GETDATE() 
+			AND a.OPERCONFID = ?
+		]]>
+		</Sql>
+		<!--查询排班日期 -->
+
+		<Sql name="getMytArraworkForDate"><![CDATA[
+			SELECT DISTINCT a.WEEKID, a.STARTTIME, a.ENDTIME 
+			FROM BOSS.MYT_ARRAWORK a 
+			WHERE a.OPERCONFID = ? 
+			AND a.STATE = 1 
+			ORDER BY a.WEEKID DESC
+		]]>
+		</Sql>
+		<!--推荐医生记录集 -->
+
+		<Sql name="getMytMainintrodoctorResult"><![CDATA[
+			SELECT a.mainintrodoctorid,a.operconfid,b.orgname,b.doctorname,b.hospofficename,
+			  convert(varchar,a.startdate,23) startdate,convert(varchar,a.enddate,23) enddate,
+			  a.starttime,a.endtime,a.operatorname,convert(varchar,a.opertime,20) opertime,a.state
+			   FROM BOSS.MYT_MAININTRODOCTOR a,boss.myt_doctor_view b
+ 				where a.operconfid=b.operconfid and b.state=1 and a.enddate>=getdate()-1 @p order by a.opertime desc
+		]]>
+		</Sql>
+		<!--推荐医生记录数 -->
+
+		<Sql name="getMytMainintrodoctorCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_MAININTRODOCTOR a,myt_doctor_view b
+ 				where a.operconfid=b.operconfid and b.state=1 and a.enddate>=getdate()-1 @p
+		]]>
+		</Sql>
+		<!--名医通医生配置 -->
+		<Sql name="getMytOperconfigCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_OPERCONFIG a where 1=1 @p
+		]]>
+		</Sql>
+		<!--名医通医生配置 -->
+		<Sql name="getMytOperconfig"><![CDATA[
+			SELECT * FROM BOSS.MYT_OPERCONFIG a  where 1=1 @p
+		]]>
+		</Sql>
+		<Sql name="getAccJkgjAccountPkgId"><![CDATA[
+			SELECT TOP 1 PACKAGEID FROM ACC_JKGJACCOUNTPKG 
+			WHERE CARDID = ? AND STATE = 1 AND TYPE <> 5  and invaliddate>=convert(varchar,getdate(),23)
+			ORDER BY ACCOUNTPACKAGESN DESC
+		]]>
+		</Sql>
+
+		<Sql name="getAccJkgjAccountPkgIds"><![CDATA[
+			SELECT PACKAGEID FROM ACC_JKGJACCOUNTPKG 
+			WHERE CARDID = ? AND STATE = 1 AND TYPE <> 5 
+			ORDER BY ACCOUNTPACKAGESN DESC
+		]]>
+		</Sql>
+		<Sql name="getArraworkViewCount"><![CDATA[
+			SELECT COUNT(*) FROM BOSS.MYT_ARRAWORK_VIEW where state='1' @p
+		]]>
+		</Sql>
+
+		<Sql name="getArraworkViewResult"><![CDATA[
+			SELECT * FROM BOSS.MYT_ARRAWORK_VIEW where state='1'  @p
+		]]>
+		</Sql>
+
+		<Sql name='queryGhtHospitalViewSql'><![CDATA[
+			select innerhospitalid,cname,ghthospitalid,hospitalid,orgid,cityid,introduction,rules
+		     from GHT_HOSPITAL_VIEW
+		       where 1=1
+		         @p
+		]]></Sql>
+
+		<Sql name='getAccCardtypeSql'><![CDATA[
+			select cardtypesn,loginType,accounttypesn,productclass,cardtypename,mincash,maxmember,grade,orgid,cityid,operatorid,
+				opertime,state,remark,flag,modeid,isgroup,introduction,yihustatus,hasgrade,yihutime,
+				packageid,standardsn,validmonth,feexml,businessrule,resources,salestate,isPermitOwe
+			 from boss.boss.ACC_CARDTYPE 
+			 	where cardtypesn=?
+		]]></Sql>
+
+		<Sql name='getAccPackageSql'><![CDATA[
+			 SELECT
+			  	PACKAGEWATERID, PKGNAME, FEE, FeeType, MaxMember, JZSERVICE, RESOURCES, PREMIUMS,
+			  	ChargeXml, RuleXml, RunID, ProvinceID, OrgID, State, Opertime, HASSMS, Type, MarketFlag
+			  FROM
+			  	ACC_PACKAGE
+			  	  where 1=1
+			  	    and PACKAGEWATERID = ?
+		]]></Sql>
+
+		<Sql name='getConsphoneByDoctor'><![CDATA[
+			 select consphone from myt_operconfig a left join MYT_consphone b 
+  				on a.doctorid=b.doctorid where a.state=1 and b.state=1 and a.operconfid = ?
+		]]></Sql>
+
+		<Sql name='getSmallStdDept'><![CDATA[
+			 select deptid,name deptname from BASE_SMALLDEPARTMENT where status=1 @p order by name
+		]]></Sql>
+
+		<Sql name='invalidArraworkPhone'><![CDATA[
+			update MYT_ArraworkPhone set state=0 where arraworkid=? and state=1
+		]]></Sql>
+
+		<Sql name='getBillCount'><![CDATA[
+		select count(x.doctorid) from (
+			select a.doctorid
+			from myt_conswater a left join myt_operconfig b on a.operconfid=b.operconfid
+				left join EOSORG_T_Organization c on a.orgid=c.orgid
+			 		where a.state=1 @p
+			 group by a.orgid,c.orgname,a.hospitalname,a.hospofficename,a.doctorname,
+			b.paytype,b.sendtype,a.doctorid
+		) x
+		]]></Sql>
+
+		<Sql name='getBill'><![CDATA[
+			select a.orgid,c.orgname,a.hospitalname,a.hospofficename,
+				a.doctorname,b.paytype,b.sendtype,a.doctorid,count(*) counter
+			from myt_conswater a left join myt_operconfig b on a.operconfid=b.operconfid
+				left join EOSORG_T_Organization c on a.orgid=c.orgid
+			 		where a.state=1 @p
+			 			group by a.orgid,c.orgname,a.hospitalname,a.hospofficename,a.doctorname,
+						b.paytype,b.sendtype,a.doctorid
+			 		order by a.hospitalname,a.hospofficename
+		]]></Sql>
+
+		<Sql name='getMytBusyState'><![CDATA[
+			select top 1 state from myt_busy
+				where operconfid=? and addtime>dateadd(mi,-30,getdate()) order by busyid desc
+		]]></Sql>
+		<!--查询用户咨询流水报表 -->
+
+		<Sql name='getWaterReportForUser'><![CDATA[
+			select datepart(year,max(a.opertime)) years,datepart(month,max(a.opertime)) months,
+				a.doctorid,replace(a.doctorname,' ','') doctorname,b.accountsn,count(*) counter,
+				max(a.opertime) lastservicetime,a.custphone,OPERCONFID as doctorUid
+			from myt_conswater a left join acc_membershipcard b on a.cardid=b.cardnumber
+			  where convert(varchar,a.opertime,23)=?
+			  	and a.state=1 and a.flag=2
+			  group by a.doctorid,a.doctorname,b.accountsn,a.custphone,a.OPERCONFID
+		]]></Sql>
+
+		<Sql name='getConswaterReportList'><![CDATA[
+			SELECT  *
+			FROM    myt_conswater a
+			        LEFT JOIN acc_membershipcard b ON a.cardid = b.cardnumber
+			WHERE   a.state = 1
+			        AND a.flag = 2
+			        @p
+			        
+			        ORDER BY  pkconswaterid DESC 
+			]]></Sql>
+		<Sql name='getConswaterReportListCount'><![CDATA[
+			SELECT count(*)
+			FROM    myt_conswater a
+			        LEFT JOIN acc_membershipcard b ON a.cardid = b.cardnumber
+			WHERE    a.state = 1
+			        AND a.flag = 2
+			        @p
+			]]></Sql>
+
+		<Sql name='getDoctorAccount'><![CDATA[
+			select * from DC_DoctorAccount @p
+		]]></Sql>
+		<Sql name='getServiceFeeConfig'><![CDATA[
+			select * from DC_ServiceFeeConfig @p
+		]]></Sql>
+
+		<Sql name='getFeeTemplate'><![CDATA[
+			select * from DC_FeeTemplate  @p
+		]]></Sql>
+
+		<Sql name='getDoctorBill'><![CDATA[
+			select * from DC_Bill  @p
+		]]></Sql>
+
+		<Sql name='getDoctorAccPrice'><![CDATA[
+			select * from V_DoctorAccPrice  @p
+		]]></Sql>
+
+		<!-- 查询字典医生信息 -->
+		<Sql name='getDictionary'><![CDATA[
+			select * from BOSS.BNDICT_T_Dictionary where 1=1 @condition
+		]]>
+		</Sql>
+		<Sql name='deleteRepotData'><![CDATA[
+			DELETE dbo.DoctorQuesReport   WHERE dayTime = CONVERT(CHAR(10),?, 120)  
+
+		]]>
+		</Sql>
+
+		<Sql name='gradeReport'><![CDATA[
+ SELECT PROVINCENAME AS provname ,
+        operatorname AS opname ,
+        SUM(counts) AS allcounts ,
+        SUM(CASE WHEN dcType = '全科' THEN counts
+                 ELSE 0
+            END) AS alloursdc ,
+        SUM(CASE WHEN dcType != '全科' THEN counts
+                 ELSE 0
+            END) AS prodc ,
+        SUM(CASE WHEN card1 = 1 THEN card1
+                 ELSE 0
+            END) AS cd1 ,
+        SUM(CASE WHEN card2 = 1 THEN card2
+                 ELSE 0
+            END) AS cd2
+ FROM   ( SELECT    pv.PROVINCENAME ,
+                    operatorname ,
+                    CASE WHEN dc.dcType = 1 THEN '全科'
+                         ELSE '普通'
+                    END AS dcType ,
+                    CASE WHEN vd.LCZC = 0 THEN '主任医师'
+                         WHEN vd.LCZC = 1 THEN '副主任医师'
+                         WHEN vd.LCZC = 2 THEN '主治医师'
+                         ELSE '医师'
+                    END AS lczc ,
+                    CASE WHEN card1 IS NOT NULL THEN 1
+                         ELSE 0
+                    END AS 'card1' ,
+                    CASE WHEN card2 IS NOT NULL THEN 1
+                         ELSE 0
+                    END AS 'card2' ,
+                    COUNT(*) AS counts
+          FROM      boss.MYT_BOOKENROL mb
+                    LEFT JOIN (         SELECT  DISTINCT d.cardnumber AS card1
+        FROM    [10.0.200.5].Account.BOSS.PackageOrder AS e ,
+                ACC_MEMBERSHIPCARD AS d
+        WHERE   PackageCode IN ( '712', '1001' )
+                AND d.accountsn = e.accountsn
+                              ) AS crd1 ON mb.CARDID = crd1.card1
+                    LEFT JOIN (         SELECT DISTINCT  d.cardnumber AS card2
+        FROM    [10.0.200.5].Account.BOSS.PackageOrder AS e ,
+                ACC_MEMBERSHIPCARD AS d
+        WHERE   PackageCode IN ( '713', '1002' )
+                AND d.accountsn = e.accountsn
+                              ) AS crd2 ON mb.CARDID = crd2.card2
+                    LEFT JOIN ( SELECT  *
+                                FROM    T_DoctorInfo_View AS td
+                                WHERE   lczc IS NOT NULL
+                                        AND main = 1
+                                        AND EXISTS ( SELECT resUid
+                                                     FROM   ( SELECT DISTINCT
+                                                              resUid
+                                                              FROM
+                                                              [10.0.200.7].BaseInfo.dbo.DC_ServiceFeeConfig
+                                                              WHERE
+                                                              serviceId = 1
+                                                            ) AS t1
+                                                     WHERE  t1.resUid = td.DoctorUid )
+                              ) vd ON vd.DoctorUid = mb.OPERCONFID
+                    INNER JOIN BOSS.BASE_PROVINCE AS pv ON mb.ProvinceId = pv.PROVINCEID
+                    LEFT JOIN ( SELECT DISTINCT
+                                        OPERCONFID ,
+                                        '1' AS dcType
+                                FROM    boss.MYT_OPERCONFIG
+                                WHERE   DOCTORLEVEL = 7
+                                        AND STATE = 1
+                              ) AS dc ON mb.OPERCONFID = dc.OPERCONFID
+          WHERE     OPERATORID != 1000000
+                    AND OPERATORID != 1111111
+                    AND STATE = 1
+                    AND REVERTRESULT = 3
+                    AND CONSTYPE = 2
+                    @p
+          GROUP BY  operatorid ,
+                    operatorname ,
+                    CONSTYPE ,
+                    REVERTRESULT ,
+                    vd.LCZC ,
+                    pv.PROVINCENAME ,
+                    dc.dcType ,
+                    card1 ,
+                    card2
+          UNION ALL
+          SELECT    pv.PROVINCENAME ,
+                    OPERATORNAME ,
+                    CASE WHEN dc.dcType = 1 THEN '全科'
+                         ELSE '普通'
+                    END AS dcType ,
+                    CASE WHEN vd.LCZC = 0 THEN '主任医师'
+                         WHEN vd.LCZC = 1 THEN '副主任医师'
+                         WHEN vd.LCZC = 2 THEN '主治医师'
+                         ELSE '医师'
+                    END AS '医生职务' ,
+                    CASE WHEN card1 IS NOT NULL THEN 1
+                         ELSE 0
+                    END AS 'card1' ,
+                    CASE WHEN card2 IS NOT NULL THEN 1
+                         ELSE 0
+                    END AS 'card2' ,
+                    COUNT(*) AS counts
+          FROM      BOSS.MYT_CONSENROL mb
+                    LEFT JOIN (         SELECT  DISTINCT d.cardnumber AS card1
+        FROM    [10.0.200.5].Account.BOSS.PackageOrder AS e ,
+                ACC_MEMBERSHIPCARD AS d
+        WHERE   PackageCode IN ( '712', '1001' )
+                AND d.accountsn = e.accountsn
+                              ) AS crd1 ON mb.CARDID = crd1.card1
+                    LEFT JOIN (         SELECT DISTINCT  d.cardnumber AS card2
+        FROM    [10.0.200.5].Account.BOSS.PackageOrder AS e ,
+                ACC_MEMBERSHIPCARD AS d
+        WHERE   PackageCode IN ( '713', '1002' )
+                AND d.accountsn = e.accountsn
+                              ) AS crd2 ON mb.CARDID = crd2.card2
+                    LEFT JOIN ( SELECT  *
+                                FROM    T_DoctorInfo_View AS td
+                                WHERE   lczc IS NOT NULL
+                                        AND main = 1
+                                        AND EXISTS ( SELECT resUid
+                                                     FROM   ( SELECT DISTINCT
+                                                              resUid
+                                                              FROM
+                                                              [10.0.200.7].BaseInfo.dbo.DC_ServiceFeeConfig
+                                                              WHERE
+                                                              serviceId = 1
+                                                            ) AS t1
+                                                     WHERE  t1.resUid = td.DoctorUid )
+                              ) vd ON vd.DoctorUid = mb.OPERCONFID
+                    INNER JOIN BOSS.BASE_PROVINCE AS pv ON mb.ProvinceId = pv.PROVINCEID
+                    LEFT JOIN ( SELECT DISTINCT
+                                        OPERCONFID ,
+                                        '1' AS dcType
+                                FROM    boss.MYT_OPERCONFIG
+                                WHERE   DOCTORLEVEL = 7
+                                        AND STATE = 1
+                              ) AS dc ON mb.OPERCONFID = dc.OPERCONFID
+          WHERE     STATE = 1
+                    AND OPERATORID != 1000000
+                    AND OPERATORID != 1111111
+                    AND TURNRESULT = 1
+                    AND CONSTYPE = 2
+                     @p
+          GROUP BY  OPERATORID ,
+                    OPERATORNAME ,
+                    CONSTYPE ,
+                    TURNRESULT ,
+                    vd.LCZC ,
+                    pv.PROVINCENAME ,
+                    dc.dcType ,
+                    card1 ,
+                    card2
+        ) AS t2
+ GROUP BY PROVINCENAME ,
+        operatorname
+ ORDER BY PROVINCENAME ,
+        operatorname 
+		]]>
+
+
+
+			<!-- <Sql name='gradeReport'><![CDATA[ SELECT PROVINCENAME as provname, 
+				operatorname as opname ,SUM(counts) AS allcounts, SUM(CASE WHEN dcType = 
+				'全科' THEN counts ELSE 0 END) AS alloursdc, SUM(CASE WHEN dcType != '全科' THEN 
+				counts ELSE 0 END) AS prodc FROM ( SELECT pv.PROVINCENAME , operatorname 
+				, CASE WHEN dc.dcType = 1 THEN '全科' ELSE '普通' END AS dcType , CASE WHEN vd.LCZC 
+				= 0 THEN '主任医师' WHEN vd.LCZC = 1 THEN '副主任医师' WHEN vd.LCZC = 2 THEN '主治医师' 
+				ELSE '医师' END AS lczc , COUNT(*) AS counts FROM boss.MYT_BOOKENROL mb LEFT 
+				JOIN ( SELECT * FROM T_DoctorInfo_View AS td WHERE lczc IS NOT NULL AND main 
+				= 1 AND EXISTS ( SELECT resUid FROM ( SELECT DISTINCT resUid FROM [10.0.200.7].BaseInfo.dbo.DC_ServiceFeeConfig 
+				WHERE serviceId = 1 ) AS t1 WHERE t1.resUid = td.DoctorUid ) ) vd ON vd.DoctorUid 
+				= mb.OPERCONFID INNER JOIN BOSS.BASE_PROVINCE AS pv ON mb.ProvinceId = pv.PROVINCEID 
+				LEFT JOIN ( SELECT DISTINCT OPERCONFID , '1' AS dcType FROM boss.MYT_OPERCONFIG 
+				WHERE DOCTORLEVEL = 7 AND STATE = 1 ) AS dc ON mb.OPERCONFID = dc.OPERCONFID 
+				WHERE OPERATORID != 1000000 AND OPERATORID != 1111111 AND STATE = 1 AND REVERTRESULT 
+				= 3 AND CONSTYPE = 2 @p GROUP BY operatorid , operatorname , CONSTYPE , REVERTRESULT 
+				, vd.LCZC , pv.PROVINCENAME , dc.dcType UNION ALL SELECT pv.PROVINCENAME 
+				, OPERATORNAME , CASE WHEN dc.dcType = 1 THEN '全科' ELSE '普通' END AS dcType 
+				, CASE WHEN vd.LCZC = 0 THEN '主任医师' WHEN vd.LCZC = 1 THEN '副主任医师' WHEN vd.LCZC 
+				= 2 THEN '主治医师' ELSE '医师' END AS '医生职务' , COUNT(*) FROM BOSS.MYT_CONSENROL 
+				mb LEFT JOIN ( SELECT * FROM T_DoctorInfo_View AS td WHERE lczc IS NOT NULL 
+				AND main = 1 AND EXISTS ( SELECT resUid FROM ( SELECT DISTINCT resUid FROM 
+				[10.0.200.7].BaseInfo.dbo.DC_ServiceFeeConfig WHERE serviceId = 1 ) AS t1 
+				WHERE t1.resUid = td.DoctorUid ) ) vd ON vd.DoctorUid = mb.OPERCONFID INNER 
+				JOIN BOSS.BASE_PROVINCE AS pv ON mb.ProvinceId = pv.PROVINCEID LEFT JOIN 
+				( SELECT DISTINCT OPERCONFID , '1' AS dcType FROM boss.MYT_OPERCONFIG WHERE 
+				DOCTORLEVEL = 7 AND STATE = 1 ) AS dc ON mb.OPERCONFID = dc.OPERCONFID WHERE 
+				STATE = 1 AND OPERATORID != 1000000 AND OPERATORID != 1111111 AND TURNRESULT 
+				= 1 AND CONSTYPE = 2 @p GROUP BY OPERATORID , OPERATORNAME , CONSTYPE , TURNRESULT 
+				, vd.LCZC , pv.PROVINCENAME , dc.dcType ) AS t2 group BY PROVINCENAME , operatorname 
+				ORDER BY PROVINCENAME , operatorname ]]> -->
+		</Sql>
+		<Sql name='insertRepotData'><![CDATA[
+			INSERT  INTO DoctorQuesReport
+        ( DoctorSN ,
+          DoctorUid ,
+          DoctorName ,
+          PhotoUri ,
+          DoctorSex ,
+          LCZC ,
+          DoctorCode ,
+          BaseDoctorID ,
+          HosDeptID ,
+          OrderId ,
+          StandardDeptID ,
+          ServiceStatus ,
+          DeptName ,
+          Layer ,
+          DeptState ,
+          HospitalID ,
+          HosName ,
+          ModeID ,
+          ProvinceID ,
+          CityID ,
+          HosState ,
+          OrgId ,
+          BaseHospitalID ,
+          DisplayStatus ,
+          doctorService ,
+          Main ,
+          DoctorGuid ,
+          HosDeptGuid ,
+          HosGuid ,
+          PROVINCESHORT ,
+          ProvinceName ,
+          CityName ,
+          loveCount ,
+          dcQuesCount ,
+          replyCount ,
+          replyAllCount,
+          firstReplyTime ,
+          dayTime 
+        )
+        SELECT DISTINCT
+                DoctorSN ,
+                DoctorUid ,
+                DoctorName ,
+                PhotoUri ,
+                DoctorSex ,
+                LCZC ,
+                DoctorCode ,
+                BaseDoctorID ,
+                HosDeptID ,
+                OrderId ,
+                StandardDeptID ,
+                ServiceStatus ,
+                DeptName ,
+                Layer ,
+                DeptState ,
+                HospitalID ,
+                HosName ,
+                ModeID ,
+                ProvinceID ,
+                CityID ,
+                HosState ,
+                OrgId ,
+                BaseHospitalID ,
+                DisplayStatus ,
+                doctorService ,
+                Main ,
+                DoctorGuid ,
+                HosDeptGuid ,
+                HosGuid ,
+                PROVINCESHORT ,
+                ProvinceName ,
+                CityName ,
+                v2.loveCount ,
+                v3.dcQuesCount ,
+                v4.replyCount ,
+                v6.replyAllCount,
+                v5.firstReplyTime ,
+                 ?  dayTime
+        FROM    [10.0.200.7].BaseInfo.dbo.V_DoctorInfo_View v1
+                LEFT  JOIN ( SELECT ASK_DoctorID ,
+                                    COUNT(ASK_DoctorID) loveCount
+                             FROM   dbo.zixun_CreditsRecord
+                             WHERE  CR_CreditsType = 2
+                                    AND CONVERT(CHAR(10), CR_CreateTime, 120) = CONVERT(CHAR(10), ?, 120)
+                             GROUP BY ASK_DoctorID
+                           ) v2 ON v1.DoctorUid = v2.ASK_DoctorID
+                LEFT JOIN ( SELECT  ASK_DoctorID ,
+                                    COUNT(ASK_DoctorID) dcQuesCount
+                            FROM    dbo.ZiXun_QuesMain
+                            WHERE   QD_SourceType = 0
+                            		AND( QD_OrdersStatus = 0 OR QD_OrdersStatus = 2)
+                                    AND CONVERT(CHAR(10), QUESMAIN_CreateTime, 120) = CONVERT(CHAR(10), ?, 120)
+                            GROUP BY ASK_DoctorID
+                          ) AS v3 ON v1.DoctorUid = v3.ASK_DoctorID
+                LEFT JOIN ( SELECT  t1.ASK_DoctorID ,
+                                    SUM(1) replyCount
+                            FROM    dbo.ZiXun_QuesMain AS t1
+                                    INNER JOIN ( SELECT ASK_QuesID ,
+                                                        COUNT(ASK_QuesID) queCount
+                                                 FROM   dbo.ZiXun_Reply
+                                                 WHERE  REPLY_UserType = 1
+                                                        AND CONVERT(CHAR(10), REPLY_CreateTime, 120) = CONVERT(CHAR(10), ?, 120)
+                                                 GROUP BY ASK_QuesID
+                                               ) AS t2 ON t1.QUESMAIN_ID = t2.ASK_QuesID 
+                                   WHERE t1.QD_SourceType = 0 
+                                   GROUP BY  ASK_DoctorID
+                          ) AS v4 ON v1.DoctorUid = v4.ASK_DoctorID 
+                LEFT JOIN ( SELECT  t1.ASK_DoctorID ,
+                                    SUM(1) replyAllCount
+                            FROM    dbo.ZiXun_QuesMain AS t1
+                                    INNER JOIN ( SELECT ASK_QuesID ,
+                                                        COUNT(ASK_QuesID) queCount
+                                                 FROM   dbo.ZiXun_Reply
+                                                 WHERE  REPLY_UserType = 1
+                                                        AND CONVERT(CHAR(10), REPLY_CreateTime, 120) = CONVERT(CHAR(10), ?, 120)
+                                                 GROUP BY ASK_QuesID
+                                               ) AS t2 ON t1.QUESMAIN_ID = t2.ASK_QuesID                                     
+                                   GROUP BY  ASK_DoctorID
+                          ) AS v6 ON v6.ASK_DoctorID = v1.DoctorUid    
+              LEFT JOIN ( SELECT  firstReplyTime ,
+                                    ASK_DoctorID
+                            FROM    ( SELECT    MIN(REPLY_CreateTime) firstReplyTime ,
+                                                ASK_DoctorID
+                                      FROM      dbo.ZiXun_reply
+                                      WHERE  REPLY_UserType = 1
+                                      GROUP BY  ASK_DoctorID
+                                    ) AS rp1
+                            WHERE   CONVERT(CHAR(10), rp1.firstReplyTime, 120) = CONVERT(CHAR(10),?, 120)
+                          ) AS v5 ON v1.DoctorUid = v5.ASK_DoctorID
+        WHERE   Main = 1
+                AND ( v2.ASK_DoctorID IS NOT NULL
+                      OR v3.ASK_DoctorID IS NOT NULL
+                      OR v4.ASK_DoctorID IS NOT NULL
+                      OR v5.ASK_DoctorID IS NOT NULL
+                    )
+		]]>
+		</Sql>
+		<Sql name='getCheckWaters'><![CDATA[
+		select * from (
+	              select    ROW_NUMBER() OVER ( ORDER BY OPERTIME DESC ) rowId ,*  
+		              FROM      BOSS.MYT_CONSWATER AS c1
+		                        LEFT JOIN MYT_ConsWaterQuality AS c2 ON c1.PKCONSWATERID = c2.cWaterID
+		              WHERE     1 = 1 @condition
+		            ) AS t1 
+		     WHERE  1 = 1   @page
+		
+				
+		]]>
+		</Sql>
+		<Sql name='getCheckWatersCount'><![CDATA[
+		     SELECT  count(*) 
+		              FROM      BOSS.MYT_CONSWATER AS c1
+		                        LEFT JOIN MYT_ConsWaterQuality AS c2 ON c1.PKCONSWATERID = c2.cWaterID
+		              WHERE     1 = 1 @condition
+		         
+ 			]]>
+		</Sql>
+
+		<Sql name='getMytConsenrols'><![CDATA[
+		    SELECT  *
+				FROM    ( SELECT    ROW_NUMBER() OVER ( ORDER BY opertime DESC ) rowId ,
+				                    operatorid ,
+				                    operatorname ,
+				                    opertime ,
+				                    remark ,
+				                    turnresult ,
+				                    constype ,
+				                    isappoint ,
+				                    vouchresult ,
+				                    vouchdefeat ,
+				                    turndefeat ,
+				                    isrevert ,
+				                    norevert ,
+				                    v1.*
+				          FROM      MYT_CONSENROL AS t1
+				                    LEFT JOIN dbo.V_DoctorInfo_View AS v1 ON t1.operconfid = v1.DoctorUid
+				          WHERE     t1.operconfid IS NOT NULL
+				                    @c
+				        ) AS t3
+				WHERE   1 = 1  
+				@p
+ 			]]>
+		</Sql>
+	</Sqls>
+
+</das-client>

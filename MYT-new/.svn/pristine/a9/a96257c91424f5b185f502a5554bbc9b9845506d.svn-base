@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryAskSmsRecordCountByCondition">
+		SELECT count (*) FROM ZiXun_AskSmsRecord where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryAskSmsRecordListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by asr_id desc) rowId,* FROM ZiXun_AskSmsRecord where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertAskSmsRecord">	INSERT INTO ZiXun_AskSmsRecord(asr_id,DoctorID,DA_RealName,ASK_DoctorAccount,asr_smstitle,asr_smscontent,asr_stattime,asr_status,asr_type)VALUES(?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateAskSmsRecordByCondition">		UPDATE ZiXun_AskSmsRecord SET @condition WHERE asr_id = ? 
+	</Sql>
+  </Sqls>
+</das-client>

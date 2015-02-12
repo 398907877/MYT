@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryAssayResultListCountByCondition">
+		SELECT count (*) FROM ZiXun_AssayResultList where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryAssayResultListListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ARL_ID desc) rowId,* FROM ZiXun_AssayResultList where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertAssayResultList">	INSERT INTO ZiXun_AssayResultList(ARL_ID,ARL_ResultMainID,ARL_PropertyID,ARL_CreateTime,ARL_Status,ARL_ProName,ARL_ProResult,ARL_Refer,ARL_Unit,ARL_Type)VALUES(?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateAssayResultListByCondition">		UPDATE ZiXun_AssayResultList SET @condition WHERE ARL_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Config>
+ <!-- <CenterServerUrl>10.0.100.154:2181</CenterServerUrl>
+	表述RPC服务端的端口
+	 <Port>8908</Port>
+	<LogUrl>10.0.200.89:8904</LogUrl>  -->
+
+ <CenterServerUrl>172.18.20.21:2181</CenterServerUrl> 
+      <Port>8908</Port> 
+		<LogUrl>172.18.20.21:8904 </LogUrl>  
+	<!--默认的工作区,通常配置为本机程序部署的目录 -->
+	<WorkSpace>D:\Client\</WorkSpace>
+
+	<!--默认为空,如果本机是多IP,需要指定特定IP的话才填写 -->
+	<Ip></Ip>
+
+	<!--网络环境,部署在公司内部的统一填写健康之路 -->
+	<NetWork>健康之路</NetWork>
+</Config>

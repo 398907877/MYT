@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryBookEnrolCountByCondition">
+		SELECT count (*) FROM MYT_BOOKENROL where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryBookEnrolListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by dateweek asc) rowId,* FROM MYT_BOOKENROL where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+	<Sql name="queryBookEnrolList">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by dateweek asc) rowId,* FROM MYT_BOOKENROL AS t1 left JOIN boss.boss.BASE_PROVINCE AS t2 ON t1.ProvinceId=t2.PROVINCEID  where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+	<Sql name="getBookEnrolListForSendMsg">
+		SELECT OPERCONFID ,
+		COUNT(OPERCONFID) sumcont
+		FROM BOSS.MYT_BOOKENROL
+		WHERE OPERTIME > DATEADD(hh, -1, GETDATE())
+		AND (REVERTRESULT = 1 OR REVERTRESULT = 2)
+		GROUP BY OPERCONFID
+	</Sql>
+		<Sql name="getUserReturnList">
+		select * from (
+		SELECT ROW_NUMBER() OVER ( ORDER BY OPERTIME DESC ) rowId ,
+		*
+		FROM ( SELECT a.BookEnrolid ,
+		a.doctorid ,
+		a.operconfid ,
+		a.cardid ,
+		a.custname ,
+		a.custphone ,
+		a.revertresult ,
+		a.dateweek ,
+		a.starttime ,
+		a.endtime ,
+		t.DoctorName ,
+		t.DoctorUid AS basedoctorid ,
+		t.DoctorGuid AS docguid ,
+		t.PROVINCESHORT ,
+		t.HosGuid AS hosguid ,
+		t.DeptName ,
+		t.HosName AS hosname ,
+		t.hosdeptid,
+		a.OPERTIME
+		FROM MYT_BOOKENROL a
+		INNER JOIN dbo.T_DoctorInfo AS t ON a.OPERCONFID = t.DoctorUid where main = 1
+		@c
+		) AS t1  where 1= 1 ) as t3 where 1= 1 @p
+	</Sql>
+	<Sql name="getUserReturnListCount">
+	SELECT count(*)
+	FROM MYT_BOOKENROL a
+	INNER JOIN dbo.T_DoctorInfo AS t ON a.OPERCONFID = t.DoctorUid where 1=1  and main = 1 @c
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertBookEnrol">	INSERT INTO MYT_BOOKENROL(DOCTORID,SEVENDOCTORID,TENDOCTORID,DOCTORNAME,OPERCONFID,HOSPOFFICEID,HOSPOFFICENAME,CARDID,CUSTNAME,CUSTPHONE,CONSTYPE,REVERTPHONE,RSPERIOD,REVERTDATE,REVERTRESULT,ORGID,CITYID,OPERATORID,OPERATORNAME,OPERTIME,STATE,REMARK,DATEWEEK,STARTTIME,ENDTIME,ldh,cardtypesn,cardorgid,ProvinceId,PackageId,comeFrom)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateBookEnrolByCondition">		UPDATE MYT_BOOKENROL SET @condition WHERE BOOKENROLID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryAnswerRecordCountByCondition">
+		SELECT count (*) FROM ZiXun_AnswerRecord where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryAnswerRecordListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by AR_ID desc) rowId,* FROM ZiXun_AnswerRecord where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertAnswerRecord">	INSERT INTO ZiXun_AnswerRecord(AR_ID,ASK_DeptID,ASK_DoctorID,ASK_QuesID,AR_OperatorTime,AR_FailTime,AR_peratorType,AR_Status)VALUES(?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateAnswerRecordByCondition">		UPDATE ZiXun_AnswerRecord SET @condition WHERE AR_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

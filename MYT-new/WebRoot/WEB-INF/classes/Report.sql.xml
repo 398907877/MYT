@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryReportCountByCondition">
+		SELECT count (*) FROM ZiXun_Report where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryReportListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by REPORT_ID desc) rowId,* FROM ZiXun_Report where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertReport">	INSERT INTO ZiXun_Report(REPORT_ID,REPORT_CreateTime,REPORT_Status,REPORT_Type,REPORT_ManID,REPORT_ManName,REPORT_UnManID,REPORT_UnManName,REPORT_Content,REPORT_Tel,ASK_QuesID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateReportByCondition">		UPDATE ZiXun_Report SET @condition WHERE REPORT_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

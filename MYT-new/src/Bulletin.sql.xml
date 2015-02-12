@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryBulletinCountByCondition">
+		SELECT count (*) FROM ZiXun_Bulletin where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryBulletinListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by BULL_ID desc) rowId,* FROM ZiXun_Bulletin where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertBulletin">	INSERT INTO ZiXun_Bulletin(BULL_ID,BULL_Title,BULL_TypeID,BULL_Content,BULL_Status,BULL_Order,BULL_OperatorID,BULL_OperatorName,BULL_CreateTime,BULL_EndTime,BULL_PicUrl,BULL_DiseaseID,BULL_DiseaseName,BULL_Htmlpath,BULL_Summary,BULL_IsLink,BULL_LinkAddress)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateBulletinByCondition">		UPDATE ZiXun_Bulletin SET @condition WHERE BULL_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

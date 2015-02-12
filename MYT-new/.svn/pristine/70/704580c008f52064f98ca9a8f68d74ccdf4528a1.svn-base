@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryOpenAuthCountByCondition">
+		SELECT count (*) FROM ZIXUN_OpenAuth where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryOpenAuthListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ID desc) rowId,* FROM ZIXUN_OpenAuth where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertOpenAuth">	INSERT INTO ZIXUN_OpenAuth(QuesMainId,DoctorId,OpenAuthFlag)VALUES(?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateOpenAuthByCondition">		UPDATE ZIXUN_OpenAuth SET @condition WHERE QuesMainId = ? 
+	</Sql>
+	
+
+	
+	
+	
+	
+	
+	     <Sql name="updateOpenAuthFlagByDocid">
+		UPDATE ZIXUN_OpenAuth SET @condition   WHERE     OpenAuthFlag !='D'     and    DoctorId = ?  
+	</Sql>
+	
+  </Sqls>
+</das-client>

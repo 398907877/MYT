@@ -1,0 +1,199 @@
+package com.yihu.api.api;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+public class UploadFileServlet extends HttpServlet {
+	byte[] bs = new byte[1024*1024*10];
+	private String url = "http://f1.yihuimg.com/TFS/TFSServlet";
+//	private String url ="http://172.18.0.81:8080/TFS/TFSServlet";
+	public String  upExt = ",jpg,jpeg,gif,png,";
+	private  String baseURLDir = "/Fault/upload/";
+	public void init() throws ServletException {
+		
+	}
+	
+	
+	private void uploadFile(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException, Exception {
+		File temp = null;
+		DiskFileItemFactory fac = new DiskFileItemFactory();
+		ServletFileUpload upload = new ServletFileUpload(fac);
+		upload.setHeaderEncoding("UTF-8");
+		List<FileItem> fileList = null;
+		try {
+			fileList = upload.parseRequest(request);
+		} catch (FileUploadException ex) {
+			ex.printStackTrace();
+			throw ex;//(errorinfo);
+		}
+		Iterator<FileItem> it = fileList.iterator();
+		FileItem fileItem = null;
+		while (it.hasNext())
+		{
+			FileItem item = it.next();
+			
+			if (!item.isFormField()) 
+			{
+				fileItem = item;
+				item.getName();
+				String fileName = new String(item.getName().getBytes(),"GBK");
+				
+				temp = new File("c:/"+item.getName());
+				InputStream in = item.getInputStream();
+				int len = in.read(bs);
+				byte[] b = new byte[len];
+				System.arraycopy(bs, 0, b, 0, len);
+				OutputStream os = new FileOutputStream(temp);
+				os.write(b);
+				os.flush();
+				os.close();
+				in.close();
+			}
+		}
+		PostMethod postMethod = new PostMethod(url);
+		Part[]  parts = { new FilePart("file",temp)};
+		Enumeration en = request.getParameterNames();
+		while (en.hasMoreElements()) {
+            String paramName = (String) en.nextElement();
+            String paramValue = request.getParameter(paramName);
+            paramValue=URLEncoder.encode(paramValue,"UTF-8");
+            postMethod.addRequestHeader(paramName, paramValue);
+        }
+		postMethod.setRequestEntity(new MultipartRequestEntity(parts, postMethod.getParams()));
+		HttpClient client = new HttpClient();
+		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
+		client.executeMethod(postMethod);
+		byte[] bs = postMethod.getResponseBody();
+		String b = new String(bs);
+		System.out.println(b);
+		response.setContentType("text/html; charset=gbk");
+		PrintWriter out = response.getWriter();
+		out.write(b);
+		out.flush();
+	}
+	
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		
+		String file = request.getParameter("File");
+		if(null != file && file.equals("true")){
+			try{
+				//上传文件
+				uploadFile(request, response);
+				return ;
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		//上传Base64 字符串文件.
+		HttpClient httpClient = new HttpClient();
+		PostMethod filePost = new PostMethod(url);
+		httpClient.getParams().setContentCharset("UTF-8");
+		filePost.addRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		Enumeration en = request.getParameterNames();
+		while (en.hasMoreElements()) {
+            String paramName = (String) en.nextElement();
+            String paramValue = request.getParameter(paramName);
+            filePost.addParameter(paramName, paramValue);
+        }
+		httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(10000);
+		httpClient.executeMethod(filePost);
+		byte[] bs = filePost.getResponseBody();
+		String b = new String(bs,"utf-8");
+		response.setContentType("application/x-www-form-urlencoded");
+		PrintWriter out = response.getWriter();
+		out.println(b);
+		out.flush();
+		out.close();
+	}
+	
+	/*
+	
+	public String getDesc(HttpServletRequest request, HttpServletResponse response,String faultDesc)
+	{
+		String upExt = ",jpg,jpeg,gif,png,";
+		while(faultDesc.indexOf("data:image")>-1)
+		{
+			String sExt="";//文件格式
+			int pstart=faultDesc.indexOf("data:image/")+11;
+			int pend =faultDesc.indexOf(";", pstart);
+			sExt=faultDesc.substring(pstart, pend);
+			 if (upExt.indexOf("," + sExt + ",")==-1) {
+		        	System.out.println("格式不对");
+		        	faultDesc="";
+		        	break;	
+				}
+			 else
+			 {
+				 System.out.println(faultDesc.indexOf("base64,",pstart) + 7);
+				 System.out.println(faultDesc.indexOf("alt=\"\"",pstart)-2);
+				 String fileStr=faultDesc.substring(faultDesc.indexOf("base64,",pstart) + 7,faultDesc.indexOf("alt=\"\"",pstart)-2);
+				 byte[] bytes=Base64.decode(fileStr);
+				 String fileFolder=new SimpleDateFormat("yyyyMMdd").format(new Date());
+	        	String filename=DateOper.getNowDateTime().toString();
+	    		filename=filename.replace("-", "");
+	    		filename=filename.replace(":", "");
+	    		filename=filename.replace(" ", "");
+	    		filename=filename.replace(".", "");
+	        	String projectBasePath = this.getServletConfig().getServletContext().getRealPath("");
+				String newFileName = projectBasePath + baseURLDir + fileFolder + "/" ;
+				System.out.println(newFileName);
+			//	构建文件目录以及目录文件
+				File fileDir = new File(newFileName);  
+	        	if (!fileDir.exists()) 
+	        	{
+	        		fileDir.mkdirs();
+	        	}
+	        	File file =new File(newFileName+ filename + "." + sExt);
+	            //创建输出流  
+	            FileOutputStream outStream;
+				try {
+					outStream = new FileOutputStream(file);
+					 //写入数据  
+		            outStream.write(bytes);  
+		            //关闭输出流  
+		            outStream.close();
+					newFileName = request.getContextPath() + baseURLDir + fileFolder + "/" + filename + "." + sExt;	
+					String dataImg=faultDesc.substring(faultDesc.indexOf("data:image"), faultDesc.indexOf("alt=\"\"",pstart)-2);
+					faultDesc=faultDesc.replace(dataImg, newFileName);
+					System.out.println(faultDesc);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					faultDesc="上传图片异常，请重试";
+					break;
+				//(response,"错误:"+e.getMessage(),"");
+				}  
+			 }
+		}
+		return faultDesc;
+	}
+
+*/
+}

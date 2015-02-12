@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<das-client>
+	<Sqls>
+		<Sql name="getBigDepartment"><![CDATA[
+			SELECT deptsn,name
+			FROM BOSS.BASE_BIGDEPARTMENT a where a.status <> 0 
+		]]>
+		</Sql>
+		
+		
+		<Sql name="getBigDepartmentByCondition"><![CDATA[
+			SELECT *
+			FROM BOSS.BASE_BIGDEPARTMENT a where a.status <> 0 @condition
+		]]>
+		</Sql>
+		
+		<!-- 查询 科室的一级国家标准科室SN-->
+		<Sql name="getBigDepartmentSnByCondition">
+			select * from BASE_BIGDEPARTMENT where DEPTSN in (
+				select bigDepartmentSn from B_HosDept a
+				left join B_HosDept_Doctor b on a.HosDeptID = b.HosDeptID 
+				left join B_Doctor c on b.DoctorUid = c.DoctorUid
+				left join B_Hospital d on a.HospitalID = d.HospitalID
+				where 1=1 @condition 
+			) order by orderflag desc
+		</Sql>
+		
+		<Sql name="getSmallDepartment"><![CDATA[
+			SELECT deptid,name
+			FROM BOSS.BASE_SMALLDEPARTMENT a 
+			WHERE a.parentid = ? 
+			AND a.status <> 0 
+		]]>
+		</Sql>
+		
+		<Sql name="getSmallDepartmentByCondition"><![CDATA[
+			SELECT a.*,b.deptsn, b.deptid as bigDeptId, b.name as bigName
+			FROM BOSS.BASE_SMALLDEPARTMENT a left join boss.BASE_BIGDEPARTMENT b on a.parentid = b.deptsn
+			where a.status <> 0  and b.status <> 0  @condition
+		]]>
+		</Sql>
+		
+		
+		<Sql name="getProvinceList"><![CDATA[
+			SELECT a.PROVINCEID, a.PROVINCENAME ,gbcode
+			FROM BOSS.BASE_PROVINCE a 
+			WHERE a.STATUS = 1 @condition
+		]]>
+		</Sql>
+		
+		<Sql name="getCityCountByProvince">
+			SELECT count(*)
+			FROM BOSS.BASE_CITY a
+			WHERE a.STATUS = 1 
+			AND a.PROVINCEID = ? 
+		</Sql>
+		
+		<Sql name="getCityByProvince"><![CDATA[
+			SELECT a.CITYID, a.CITYNAME ,a.gbCode
+			FROM BOSS.BASE_CITY a
+			WHERE a.STATUS = 1 
+			AND a.PROVINCEID = ? 
+		]]>
+		</Sql>
+		
+		<Sql name="getGBCodeByCityId"><![CDATA[
+			SELECT a.gbcode
+			FROM BOSS.BASE_CITY a
+			WHERE a.STATUS = 1 
+			AND a.cityid = ? 
+		]]>
+		</Sql>
+		
+		<Sql name="getAreaByCity">
+			SELECT a.AREAID, a.AREANAME 
+			FROM BOSS.BASE_AREA a
+			WHERE a.STATUS = 1
+			AND a.CITYID = ? 
+		</Sql>
+		
+		<!-- 查询字典医生信息 -->
+		<Sql name='getDictionary'><![CDATA[
+			select * from BOSS.BNDICT_T_Dictionary where 1=1 @condition
+		]]>
+		</Sql>
+		
+		<!-- 根据科室是否开放查询省份ID及名称 -->
+		<Sql name='getProvinceByHosDeptZXType'><![CDATA[
+			select b.ProvinceID,max(b.ProvinceName) ProvinceName
+			from B_HosDept a 
+			left join B_Hospital b on a.HospitalID=b.HospitalID 
+			where a.ZXType=1 group by b.ProvinceID order by b.ProvinceID
+		]]>
+		</Sql>
+		
+		<!-- 根据科室是否开放和省份ID查询城市ID及名称 -->
+		<Sql name='getCityByHosDeptProvinceZXType'><![CDATA[
+			select b.CityID,max(b.CityName) CityName
+			from B_HosDept a 
+			left join B_Hospital b on a.HospitalID=b.HospitalID 
+			where a.ZXType=1 and b.ProvinceID = ? 
+			group by b.CityID order by b.CityID
+		]]>
+		</Sql>
+		
+		<!-- 查询医疗资源统计 -->
+		<Sql name='queryResourcesCount'><![CDATA[
+			select resourcesCountId,provinceId,cityId,cityCode,hospitalCount,doctorCount from report_resourcesCount 
+		]]>
+		</Sql>
+		<!-- 根据省份GBCode查询省份ID -->
+		<Sql name="queryProvinceIdByGBCode">
+			<![CDATA[
+				select PROVINCEID from BASE_PROVINCE where GBCode = ?
+			]]>
+		</Sql>
+		<!-- 根据城市GBCode查询城市ID -->
+		<Sql name="queryCityIdByGBCode">
+			<![CDATA[
+				select CITYID from BASE_CITY where GBCode = ?
+			]]>
+		</Sql>
+	</Sqls>
+</das-client>
+
+
+
+
+
+
+
+
+
+
+

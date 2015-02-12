@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryCloseMainCountByCondition">
+		SELECT count (*) FROM ZIXUN_CLOSEMAIN where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryCloseMainListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ID desc) rowId,* FROM ZIXUN_CLOSEMAIN where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertCloseMain">	INSERT INTO ZIXUN_CLOSEMAIN(DOCID,DOCNAME,DOCDIC)VALUES(?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateCloseMainByCondition">		UPDATE ZIXUN_CLOSEMAIN SET @condition WHERE ID = ? 
+	</Sql>
+	
+	
+	
+	<!--查找医生 by  id -->
+     <Sql name="findDocById">
+		select * from  v_myt_doctorService   @find
+	</Sql>
+	
+	
+  </Sqls>
+</das-client>

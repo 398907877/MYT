@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryZiXun_DoctorApplyInterimCountByCondition">
+		SELECT count (*) FROM ZiXun_DoctorApplyInterim where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryZiXun_DoctorApplyInterimListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ASK_UserID,DAI_ID desc) rowId,* FROM ZiXun_DoctorApplyInterim where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertZiXun_DoctorApplyInterim">	INSERT INTO ZiXun_DoctorApplyInterim(DAI_ID,DAI_CreateTime,DAI_Status,DAI_RealName,DAI_Sex,ASK_ProvinceID,ASK_CityID,ASK_HospitalID,ASK_DepartID,DAI_DLicenseFileID,DAI_DLicense,DAI_WorkPathFileID,DAI_WorkPath,DAI_DepartTel,ASK_CheckManID,ASK_CheckManName,ASK_UserID,ASK_Message,ASK_ProvinceName,ASK_CityName,ASK_DepartName,Ask_CLINICLEVEL,Ask_LEVELID,Ask_CongYiAge,Ask_Scjb,Ask_Grjj,Ask_DiseaseIDs,Ask_HosName,Ask_DiseaseNames)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateZiXun_DoctorApplyInterimByCondition">		UPDATE ZiXun_DoctorApplyInterim SET @condition WHERE ASK_UserID = ? and DAI_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

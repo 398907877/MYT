@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+	<Sqls>
+		<!--查询记录数 -->
+		<Sql name="queryConsumerOrdersCountByCondition">
+			SELECT count (*) FROM ZiXun_ConsumerOrders where 1=1
+			@condition
+		</Sql>
+    <!--根据条件分页查询记录 -->
+		<Sql name="queryConsumerOrdersListByCondition">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by CO_ID
+			desc) rowId,* FROM
+			ZiXun_ConsumerOrders where 1=1 @condition ) as a
+			where 1=1 @page
+		</Sql>
+		<Sql name="queryConOrderForApp">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by CO_ID
+			desc) rowId,* FROM
+			ZiXun_ConsumerOrders where 1=1 @condition ) as a
+			where 1=1 @page
+		</Sql>
+		
+		
+    <!--插入 -->
+		<Sql name="insertConsumerOrders"> INSERT INTO
+			ZiXun_ConsumerOrders(CO_ID,ASK_UserID,CO_OrderNumber,ASK_DoctorID,CO_CreateTime,CO_Price,CO_Status,ASK_QuesID,ASK_Content,ASK_QuesType,CO_SettleTime,ASK_DeptID,CO_AskType,feeTemplateId)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+		</Sql>
+    <!--根据条件更新 -->
+		<!--update sql -->
+		<Sql name="updateConsumerOrdersByCondition">
+			UPDATE ZiXun_ConsumerOrders SET @condition WHERE CO_ID =?
+		</Sql>
+		<Sql name="getListForReturnPremium">
+		SELECT  a.QUESMAIN_ID ,
+		        b.CO_ID ,
+		        b.ASK_UserID
+		FROM    ZiXun_QuesMain AS a
+		        INNER JOIN ZiXun_ConsumerOrders AS b ON a.QUESMAIN_ID = b.ASK_QuesID
+		WHERE   a.QUESMAIN_Status = 1
+		        AND a.QD_CheckStatus = 1
+		        AND a.QD_Status = 0
+		        AND (a.QD_SourceType = 0 OR a.QD_SourceType =2)
+		        AND a.QD_DocReplayCount = 0
+		        AND QD_HandleID = 1
+		        AND a.QD_OrdersStatus = 2
+		        AND GETDATE() > a.QUESMAIN_ExpiredTime
+		        AND b.ASK_QuesType = 7
+		        AND b.CO_Status = 0
+		        AND (b.CO_AskType = 0 OR b.CO_AskType = 1)
+		        AND a.QD_Price > 0
+		        
+		</Sql>
+	</Sqls>
+</das-client>

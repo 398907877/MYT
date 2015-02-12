@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+	<Sqls>
+		<!--查询记录数 -->
+		<Sql name="queryDoctorFreeCountEditCountByCondition">
+			SELECT count (*) FROM ZiXun_DoctorFreeCountEdit where 1=1 @condition
+		</Sql>
+    <!--根据条件分页查询记录 -->
+		<Sql name="queryDoctorFreeCountEditListByCondition">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by dfcEdit desc) rowId,*
+			FROM ZiXun_DoctorFreeCountEdit where 1=1 @condition and endTime >
+			getdate() ) as a where 1=1 @page
+		</Sql>
+		<Sql name="queryDocFreeEditListForTop">
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by beginTime desc) rowId,*
+			FROM ZiXun_DoctorFreeCountEdit where 1=1 @condition and endTime >
+			getdate()  AND  beginTime > CONVERT(CHAR(10), GETDATE(), 120) ) as a where 1=1 @page
+		</Sql>
+		<Sql name="queryDocFreeEditListForUpdate">
+			SELECT  *
+			FROM    ( SELECT    ROW_NUMBER() OVER ( PARTITION BY dfcid ORDER BY beginTime DESC) AS rowids , * FROM    
+			  ZiXun_DoctorFreeCountEdit ) AS t1
+			WHERE   t1.rowids = 1   AND t1.beginTime > CONVERT(CHAR(10), GETDATE()-1, 120) AND t1.endTime > GETDATE()
+		</Sql>
+		<!--插入 -->
+		<Sql name="insertDoctorFreeCountEdit"> INSERT INTO ZiXun_DoctorFreeCountEdit
+			(dfcEdit,dfcId,freeCount,ifChange,beginTime,endTime,ifOver)VALUES(?,?,?,?,?,?,?)
+		</Sql>
+    <!--根据条件更新 -->
+		<!--update sql -->
+		<Sql name="updateDoctorFreeCountEditByCondition"> UPDATE ZiXun_DoctorFreeCountEdit SET @condition WHERE
+			dfcEdit = ?
+		</Sql>
+	</Sqls>
+</das-client>

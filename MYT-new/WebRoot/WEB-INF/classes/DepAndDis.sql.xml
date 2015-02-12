@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDepAndDisCountByCondition">
+		SELECT count (*) FROM ZIXUN_KESHIJIBING where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDepAndDisListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by  desc) rowId,* FROM ZIXUN_KESHIJIBING where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDepAndDis">	INSERT INTO ZIXUN_KESHIJIBING(docId,docName,departMent,disease)VALUES(?,?,?,?)
+	</Sql>
+  </Sqls>
+</das-client>

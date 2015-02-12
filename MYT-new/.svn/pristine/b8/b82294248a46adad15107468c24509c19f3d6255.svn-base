@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryQuesReplyMutualCountByCondition">
+		SELECT count (*) FROM ZiXun_QuesReplyMutual where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryQuesReplyMutualListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by quesReplyMutualID desc) rowId,* FROM ZiXun_QuesReplyMutual where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertQuesReplyMutual">	INSERT INTO ZiXun_QuesReplyMutual(quesReplyMutualID,replyType,replyCount,beginTime,endTime,queID,lastUpdateTime)VALUES(?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateQuesReplyMutualByCondition">		UPDATE ZiXun_QuesReplyMutual SET @condition WHERE quesReplyMutualID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

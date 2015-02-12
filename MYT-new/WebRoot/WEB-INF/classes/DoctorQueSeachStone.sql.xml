@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDoctorQueSeachStoneCountByCondition">
+		SELECT count (*) FROM ZiXun_DoctorQueSeachStone where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDoctorQueSeachStoneListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ID desc) rowId,* FROM ZiXun_DoctorQueSeachStone where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDoctorQueSeachStone">	INSERT INTO ZiXun_DoctorQueSeachStone(ID,doctorUid,seachID,state,operTime,num,seachType)VALUES(?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDoctorQueSeachStoneByCondition">		UPDATE ZiXun_DoctorQueSeachStone SET @condition WHERE ID = ? 
+	</Sql>
+	 <Sql name="updateDoctorQueSeachStoneByConditionForDoctorUid">
+		UPDATE ZiXun_DoctorQueSeachStone SET @condition WHERE DoctorUid = ?  and SeachType = ?
+	</Sql>
+  </Sqls>
+</das-client>

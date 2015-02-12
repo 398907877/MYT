@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryArticleCountByCondition">
+		SELECT count (*) FROM ZiXun_Article where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryArticleListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ARTICLE_ID desc) rowId,* FROM ZiXun_Article where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertArticle">	INSERT INTO ZiXun_Article(ARTICLE_ID,ASK_DoctorID,ARTICLE_CreateTime,ARTICLE_Status,ARTICLE_Title,ARTICLE_KeyWord,ARTICLE_Source,ARTICLE_SourcePath,ARTICLE_Content,ARTICLE_Click,ARTICLE_Order,ARTICLE_Url)VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateArticleByCondition">		UPDATE ZiXun_Article SET @condition WHERE ARTICLE_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

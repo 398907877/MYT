@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDoctorAccount_MoreCountByCondition">
+		SELECT count (*) FROM ZiXun_DoctorAccount_More where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDoctorAccount_MoreListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by da_id desc) rowId,* FROM ZiXun_DoctorAccount_More where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDoctorAccount_More">	INSERT INTO ZiXun_DoctorAccount_More(da_id,da_doctoruid,da_domain,da_lovevalue,da_replycount,da_interimcode,DA_Status,da_doctoraccount)VALUES(?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDoctorAccount_MoreByCondition">		UPDATE ZiXun_DoctorAccount_More SET @condition WHERE da_id = ? 
+	</Sql>
+  </Sqls>
+</das-client>

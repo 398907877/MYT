@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryFilesCountByCondition">
+		SELECT count (*) FROM ZiXun_Files where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryFilesListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by FILES_ID desc) rowId,* FROM ZiXun_Files where 1=1 @condition ) as a where 1=1 and FILES_Status = 1  @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertFiles">	INSERT INTO ZiXun_Files(FILES_ID,FILES_Status,FILES_CreateTime,FILES_OldName,FILES_NewName,FILES_TypeID,FILES_ObjTypeID,FILES_ObjID,FILES_Path,FILES_Size,FILES_OperatorID)VALUES(?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateFilesByCondition">		UPDATE ZiXun_Files SET @condition WHERE FILES_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

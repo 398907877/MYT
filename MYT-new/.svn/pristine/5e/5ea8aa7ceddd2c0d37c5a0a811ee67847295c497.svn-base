@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDoctorDefaultAuthCountByCondition">
+		SELECT count (*) FROM ZIXUN_DoctorDefaultAuth where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDoctorDefaultAuthListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by Id desc) rowId,* FROM ZIXUN_DoctorDefaultAuth where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDoctorDefaultAuth">	INSERT INTO ZIXUN_DoctorDefaultAuth(DoctorId,OpenFlag)VALUES(?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDoctorDefaultAuthByCondition">		UPDATE ZIXUN_DoctorDefaultAuth SET @condition WHERE Id = ? 
+	</Sql>
+
+	  <Sql name="queryDoctorDefaultAuthListByDoctorId">
+			SELECT  * from  ZIXUN_DoctorDefaultAuth where DoctorId=?
+	</Sql>
+  </Sqls>
+</das-client>

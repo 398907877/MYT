@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDoctorPriceRecordCountByCondition">
+		SELECT count (*) FROM ZiXun_DoctorPriceRecord where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDoctorPriceRecordListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by DPR_ID desc) rowId,* FROM ZiXun_DoctorPriceRecord where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDoctorPriceRecord">	INSERT INTO ZiXun_DoctorPriceRecord(DPR_ID,ASK_DoctorID,DPR_CreateTime,DPR_Status,DPR_Price)VALUES(?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDoctorPriceRecordByCondition">		UPDATE ZiXun_DoctorPriceRecord SET @condition WHERE DPR_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

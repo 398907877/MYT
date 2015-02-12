@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryPatientCountByCondition">
+		SELECT count (*) FROM ZiXun_Patient where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryPatientListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by PATIENT_ID desc) rowId,* FROM ZiXun_Patient where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertPatient">	INSERT INTO ZiXun_Patient(PATIENT_ID,PATIENT_CreateTime,PATIENT_Status,PATIENT_Name,PATIENT_Birth,PATIENT_Sex,ASK_ProvinceID,ASK_CityID,PATIENT_AskCount,ASK_UserID,ASK_ProvinceName,ASK_CityName)VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+	  <Sql name="insertThePatient">
+	INSERT INTO ZiXun_Patient(ASK_CityID,PATIENT_Name,PATIENT_Birth,PATIENT_Sex,ASK_CityID,ASK_CityName,ASK_ProvinceID,ASK_ProvinceName)VALUES(?,?,?,?,?,?,?,?)
+	</Sql>
+	
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updatePatientByCondition">		UPDATE ZiXun_Patient SET @condition WHERE PATIENT_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryJobpayCountByCondition">
+		SELECT count (*) FROM ZIXUN_JOBPAY300 where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryJobpayListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ID desc) rowId,* FROM ZIXUN_JOBPAY300 where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertJobpay">	INSERT INTO ZIXUN_JOBPAY300(DOCID,NUM,SEQNUM,ROUTEMESSAGE,FLAG)VALUES(?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateJobpayByCondition">		UPDATE ZIXUN_JOBPAY300 SET @condition WHERE ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

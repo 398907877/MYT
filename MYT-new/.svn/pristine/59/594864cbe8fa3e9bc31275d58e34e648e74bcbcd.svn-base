@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryRecordCountByCondition">
+		SELECT count (*) FROM ZiXun_Record where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryRecordListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by RECORD_Id desc) rowId,* FROM ZiXun_Record where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertRecord">	INSERT INTO ZiXun_Record(RECORD_Id,RECORD_UserID,RECORD_Time,RECORD_Money,RECORD_Type,RECORD_Content,RECORD_ProblemId,RECORD_UserName,RECORD_SourceUrl)VALUES(?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateRecordByCondition">		UPDATE ZiXun_Record SET @condition WHERE RECORD_Id = ? 
+	</Sql>
+  </Sqls>
+</das-client>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDoctorClickWaterCountByCondition">
+		SELECT count (*) FROM ZiXun_DoctorClickWater where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDoctorClickWaterListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by WaterID desc) rowId,* FROM ZiXun_DoctorClickWater where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDoctorClickWater">	INSERT INTO ZiXun_DoctorClickWater(WaterID,DoctorID,UserID,IP,CreatDateTime,State)VALUES(?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDoctorClickWaterByCondition">		UPDATE ZiXun_DoctorClickWater SET @condition WHERE WaterID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

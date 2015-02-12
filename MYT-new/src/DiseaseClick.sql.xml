@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDiseaseClickCountByCondition">
+		SELECT count (*) FROM ZiXun_DiseaseClick where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDiseaseClickListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by DIC_ID desc) rowId,* FROM ZiXun_DiseaseClick where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDiseaseClick">	INSERT INTO ZiXun_DiseaseClick(DIC_ID,DIC_DiseaseID,DIC_CreateTime,DIC_ClickNum,DIC_State)VALUES(?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDiseaseClickByCondition">		UPDATE ZiXun_DiseaseClick SET @condition WHERE DIC_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

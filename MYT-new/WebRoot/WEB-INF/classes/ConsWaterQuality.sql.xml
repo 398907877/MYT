@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryConsWaterQualityCountByCondition">
+		SELECT count (*) FROM MYT_ConsWaterQuality where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryConsWaterQualityListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by qualityID desc) rowId,* FROM MYT_ConsWaterQuality where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertConsWaterQuality">	INSERT INTO MYT_ConsWaterQuality(cWaterID,qualityReult,consType,qualityMemo,inputUserID,inputUserName,inputTime)VALUES(?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateConsWaterQualityByCondition">		UPDATE MYT_ConsWaterQuality SET @condition WHERE qualityID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

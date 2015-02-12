@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+
+    <Sql name="demo">
+		SELECT * FROM demo where 1=1 @such  @page
+	</Sql>
+	
+	
+    <Sql name="suchDownDocMSGlist">
+		
+SELECT  * from(
+SELECT
+ROW_NUMBER() OVER ( ORDER BY doctorname DESC ) rowid,
+	doctorinfo.doctorname,
+	doctorinfo.deptname,
+	doctorinfo.hosname,
+	doctorinfo.provinceid,
+	doctorinfo.cityid,
+	doctorinfo.hospitalid,
+	uu.*
+FROM
+	(
+		SELECT
+			CASE
+		WHEN t1.ASK_DoctorID IS NOT NULL THEN
+			t1.ASK_DoctorID
+		WHEN t2.ASK_DoctorID IS NOT NULL THEN
+			t2.ASK_DoctorID
+		WHEN t3.ASK_DoctorID IS NOT NULL THEN
+			t3.ASK_DoctorID
+		WHEN t4.ASK_DoctorID IS NOT NULL THEN
+			t4.ASK_DoctorID
+		ELSE
+			t5.ASK_DoctorID
+		END doctorid,
+		t1.num1,
+		t2.num2,
+		t3.num3,
+		t4.num4,
+		t5.num5
+	FROM
+		(
+			
+			SELECT
+				ASK_DoctorID,
+				COUNT (ASK_DoctorID) AS num1
+			FROM
+				ZiXun_QuesMain
+			WHERE
+				1 = 1
+			AND QD_SourceType = 0
+@timesuch
+			GROUP BY
+				ASK_DoctorID
+		) AS t1
+	FULL OUTER JOIN 
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num2
+		FROM
+			ZiXun_QuesCloseWater AS t1
+		LEFT JOIN ZiXun_QuesMain AS t2 ON t1.QuesID = t2.QUESMAIN_ID
+		WHERE
+			1 = 1
+@timesuch
+		AND QD_SourceType = 0
+		GROUP BY
+			ASK_DoctorID
+	) AS t2 ON t1.ASK_DoctorID = t2.ASK_DoctorID
+	FULL OUTER JOIN
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num3
+		FROM
+			ZiXun_QuesMain
+		WHERE
+			1 = 1
+		AND QD_SourceType = 0
+@timesuch
+		AND QD_DocFreeID > 0
+		GROUP BY
+			ASK_DoctorID
+	) AS t3 ON t1.ASK_DoctorID = t3.ASK_DoctorID
+	FULL OUTER JOIN 
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num4
+		FROM
+			ZiXun_QuesCloseWater AS t1
+		LEFT JOIN ZiXun_QuesMain AS t2 ON t1.QuesID = t2.QUESMAIN_ID
+		WHERE
+			1 = 1
+@timesuch
+		AND QD_SourceType = 0
+		AND QD_DocFreeID > 0
+		GROUP BY
+			ASK_DoctorID
+	) AS t4 ON t1.ASK_DoctorID = t4.ASK_DoctorID
+	FULL OUTER JOIN 
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num5
+		FROM
+			ZiXun_QuesCloseWater AS t1
+		LEFT JOIN ZiXun_QuesMain AS t2 ON t1.QuesID = t2.QUESMAIN_ID
+		WHERE
+			1 = 1
+@timesuch
+		AND QD_SourceType = 1
+		GROUP BY
+			ASK_DoctorID
+	) AS t5 ON t1.ASK_DoctorID = t5.ASK_DoctorID
+	) AS uu
+LEFT JOIN (SELECT  * from v_myt_doctorService where  main=1 
+) AS doctorinfo ON uu.doctorid = doctorinfo.doctoruid
+
+WHERE 1=1  @such)as pp WHERE  1=1  @page
+	</Sql>
+	
+	  <Sql name="suchDownDocMSGcount">
+		
+SELECT  count(*) from(
+SELECT
+ROW_NUMBER() OVER ( ORDER BY doctorname DESC ) rowid,
+	doctorinfo.doctorname,
+	doctorinfo.deptname,
+	doctorinfo.hosname,
+	doctorinfo.provinceid,
+	doctorinfo.cityid,
+	doctorinfo.hospitalid,
+	uu.*
+FROM
+	(
+		SELECT
+			CASE
+		WHEN t1.ASK_DoctorID IS NOT NULL THEN
+			t1.ASK_DoctorID
+		WHEN t2.ASK_DoctorID IS NOT NULL THEN
+			t2.ASK_DoctorID
+		WHEN t3.ASK_DoctorID IS NOT NULL THEN
+			t3.ASK_DoctorID
+		WHEN t4.ASK_DoctorID IS NOT NULL THEN
+			t4.ASK_DoctorID
+		ELSE
+			t5.ASK_DoctorID
+		END doctorid,
+		t1.num1,
+		t2.num2,
+		t3.num3,
+		t4.num4,
+		t5.num5
+	FROM
+		(
+			
+			SELECT
+				ASK_DoctorID,
+				COUNT (ASK_DoctorID) AS num1
+			FROM
+				ZiXun_QuesMain
+			WHERE
+				1 = 1
+			AND QD_SourceType = 0
+@timesuch
+			GROUP BY
+				ASK_DoctorID
+		) AS t1
+	FULL OUTER JOIN 
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num2
+		FROM
+			ZiXun_QuesCloseWater AS t1
+		LEFT JOIN ZiXun_QuesMain AS t2 ON t1.QuesID = t2.QUESMAIN_ID
+		WHERE
+			1 = 1
+@timesuch
+		AND QD_SourceType = 0
+		GROUP BY
+			ASK_DoctorID
+	) AS t2 ON t1.ASK_DoctorID = t2.ASK_DoctorID
+	FULL OUTER JOIN
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num3
+		FROM
+			ZiXun_QuesMain
+		WHERE
+			1 = 1
+		AND QD_SourceType = 0
+@timesuch
+		AND QD_DocFreeID > 0
+		GROUP BY
+			ASK_DoctorID
+	) AS t3 ON t1.ASK_DoctorID = t3.ASK_DoctorID
+	FULL OUTER JOIN 
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num4
+		FROM
+			ZiXun_QuesCloseWater AS t1
+		LEFT JOIN ZiXun_QuesMain AS t2 ON t1.QuesID = t2.QUESMAIN_ID
+		WHERE
+			1 = 1
+@timesuch
+		AND QD_SourceType = 0
+		AND QD_DocFreeID > 0
+		GROUP BY
+			ASK_DoctorID
+	) AS t4 ON t1.ASK_DoctorID = t4.ASK_DoctorID
+	FULL OUTER JOIN 
+	(
+		SELECT
+			ASK_DoctorID,
+			COUNT (ASK_DoctorID) AS num5
+		FROM
+			ZiXun_QuesCloseWater AS t1
+		LEFT JOIN ZiXun_QuesMain AS t2 ON t1.QuesID = t2.QUESMAIN_ID
+		WHERE
+			1 = 1
+@timesuch
+		AND QD_SourceType = 1
+		GROUP BY
+			ASK_DoctorID
+	) AS t5 ON t1.ASK_DoctorID = t5.ASK_DoctorID
+	) AS uu
+LEFT JOIN (SELECT  * from v_myt_doctorService where  main=1 
+) AS doctorinfo ON uu.doctorid = doctorinfo.doctoruid
+
+WHERE 1=1  @such)as pp WHERE  1=1  @page
+	</Sql>
+
+	    <Sql name="deleteQuesVoByUser">
+		
+DELETE  ZiXun_QuesMain  WHERE  1=1 @such
+	</Sql>
+	
+	
+
+    <Sql name="testquery">
+		SELECT  *  FROM   ZiXun_QuesMain  WHERE   ASK_DoctorID=710096894  and QUESMAIN_Content ='99999999999999999999999999'
+	</Sql>
+	    <Sql name="testtosave">
+		
+INSERT INTO [YiHuNet2008].[dbo].[ZiXun_Reply] (
+	[REPLY_CreateTime],
+	[ASK_QuesID],
+	[REPLY_Content],
+	[ASK_DoctorID],
+	[REPLY_UserType]
+)
+VALUES
+	(
+		'2015-02-02 16:00:00',
+		?,
+		'7777777777777',
+		'710096894',
+		'1'
+	);
+
+	</Sql>
+	
+	
+	  <Sql name="queryWaitAndNewReplyCount">
+		SELECT
+	tty1.docid,
+	tty1.num AS WaitReplyCount,
+	tty2.num AS NewReplyCount
+FROM
+	(
+		SELECT
+			MAX (ask_doctorid) AS docid,
+			COUNT (ask_doctorid) AS num
+		FROM
+			(
+				SELECT
+					ROW_NUMBER () OVER (
+
+						ORDER BY
+							QD_SourceType ASC,
+							(
+								CASE
+								WHEN QD_DocReplayCount > 0 THEN
+									1
+								ELSE
+									2
+								END
+							) ASC,
+							waitTime DESC,
+							QUESMAIN_CreateTime ASC
+					) rowid,
+					*
+				FROM
+					(
+						SELECT DISTINCT
+							q1.*, r1.*, p1.ASK_CityID,
+							p1.ASK_CityName,
+							p1.ASK_ProvinceID,
+							p1.ASK_ProvinceName,
+							p1.PATIENT_Birth,
+							p1.PATIENT_CreateTime,
+							p1.PATIENT_Name,
+							p1.PATIENT_Sex,
+							p1.PATIENT_Status,
+							CASE
+						WHEN q1.QD_SourceType = 0
+						AND q1.QD_DocReplayCount = 0 THEN
+							'指定我的'
+						WHEN q1.QD_SourceType = 1
+						AND q1.QD_DocReplayCount = 0 THEN
+							'来自公共咨询'
+						ELSE
+							'追问'
+						END AS sourceMemo,
+						CASE
+					WHEN q1.QD_SourceType = 0
+					AND GETDATE() > QUESMAIN_ExpiredTime THEN
+						'已超时'
+					ELSE
+						'未超时'
+					END AS queStatus,
+					CASE
+				WHEN q1.QD_SourceType = 0
+				AND GETDATE() > QUESMAIN_ExpiredTime THEN
+					1
+				ELSE
+					0
+				END AS qeStatus,
+				CASE
+			WHEN QUESMAIN_Status = 1
+			AND QD_CheckStatus = 1
+			AND (
+				ASK_DoctorID = 0
+				OR (
+					ASK_DoctorID > 0
+					AND DATEDIFF(
+						MINUTE,
+						QD_RecordExpiredTime,
+						GETDATE()
+					) > 0
+					AND QD_DocReplayCount = 0
+				)
+			) THEN
+				0
+			ELSE
+				1
+			END AS ifCheck,
+			CASE
+		WHEN r1.REPLY_CreateTime IS NULL THEN
+			q1.QUESMAIN_CreateTime
+		ELSE
+			r1.REPLY_CreateTime
+		END AS waitTime
+		FROM
+			dbo.ZiXun_QuesMain AS q1
+		LEFT JOIN (
+			SELECT
+				REPLY_Content,
+				ASK_QuesID,
+				REPLY_Type,
+				REPLY_CreateTime
+			FROM
+				ZiXun_Reply t
+			WHERE
+				REPLY_ID = (
+					SELECT
+						TOP 1 REPLY_ID
+					FROM
+						ZiXun_Reply
+					WHERE
+						ASK_QuesID = t.ASK_QuesID
+					AND REPLY_UserType = 2
+					ORDER BY
+						REPLY_CreateTime DESC
+				)
+		) AS r1 ON q1.QUESMAIN_ID = r1.ASK_QuesID
+		LEFT JOIN dbo.ZiXun_Patient AS p1 ON p1.PATIENT_ID = q1.ASK_PatientID
+		LEFT JOIN (
+			SELECT
+				*
+			FROM
+				dbo.ZiXun_Disease
+			WHERE
+				DISEASE_Status = 1
+		) AS d ON d.ASK_QuesID = q1.QUESMAIN_ID
+		WHERE
+			(
+				QUESMAIN_Status = 1
+				AND (
+					QD_CheckStatus = 1
+					OR QD_CheckStatus = 3
+				)
+				AND QD_Status = 0
+				AND (
+					QD_OrdersStatus = 2
+					OR QD_OrdersStatus = 0
+					OR QD_OrdersStatus = 5
+				)
+				AND (
+					(
+						QD_SourceType = 0
+						AND QD_IsUserReplay = 1
+					)
+					OR (
+						QD_SourceType = 1
+						AND 0 >= DATEDIFF(
+							MINUTE,
+							QD_RecordExpiredTime,
+							GETDATE()
+						)
+						AND QD_DocReplayCount = 0
+					)
+					OR (
+						QD_SourceType = 1
+						AND QD_DocReplayCount > 0
+						AND QD_IsReplay = 0
+						AND QD_IsUserReplay = 1
+					)
+				)
+         @doctorUid
+			
+			)
+					) AS t1
+				WHERE
+					1 = 1
+			) AS t5
+		WHERE
+			1 = 1
+	) AS tty1
+FULL OUTER JOIN (
+	SELECT
+		 @idis as docid,
+		COUNT (ask_doctorid) AS num
+	FROM
+		ZiXun_QuesMain
+	WHERE
+		QD_DocReplayCount = 0  @doctorUid
+	
+	AND 0 >= DATEDIFF(
+		MINUTE,
+		quesmain_expiredtime,
+		GETDATE()
+	)
+) AS tty2 ON tty1.docid = tty2.docid
+	</Sql>
+	
+	
+	
+	
+	 <Sql name="queryHotQueByDept">
+		
+	SELECT
+	*
+FROM
+	(
+		SELECT
+			ROW_NUMBER () OVER (ORDER BY clicks DESC) rowId,
+			t1.*, t2.clicks
+		FROM
+			(
+				SELECT
+										QUESMAIN_ID,QUESMAIN_Content,QUESMAIN_CreateTime,
+					QD_DeptTwoIDS
+				FROM
+					ZiXun_QuesMain
+				WHERE
+					1 = 1  @dept
+					@time
+				
+			) AS t1
+		LEFT JOIN (SELECT * FROM ZIXUN_OpenAuth) AS t2 ON t1.QUESMAIN_ID = t2.quesmainid
+	) AS uu
+WHERE
+	1 = 1  @page
+	</Sql>
+	
+	
+	
+	
+	
+	
+	
+	
+    <Sql name="queryDoctorQueFree">
+    SELECT
+	CASE
+WHEN yy1.docid IS NOT NULL THEN
+	yy1.docid
+WHEN yy2.docid IS NOT NULL THEN
+	yy2.docid
+WHEN yy3.docid IS NOT NULL THEN
+	yy3.docid
+ELSE
+	yy4.docid
+END docid,
+ ISNULL(yy1.num,0) AS mfreecount ,
+ ISNULL(yy2.num,0) AS mtofreecount,
+ ISNULL(yy3.num,0) AS dayfreecount,
+ ISNULL(yy4.num,0) AS daytofreecount
+FROM
+	(
+
+		SELECT
+			t3.ask_doctorid AS docid,
+			COUNT (t3.ask_doctorid) AS num
+		FROM
+			(
+				SELECT
+					t1.*, t2.QD_SourceType
+				FROM
+					(
+						SELECT
+							ask_quesid,
+							MAX (ask_doctorid) AS ask_doctorid,
+							MAX (timefile) AS timefile
+						FROM
+							(
+								SELECT
+									CONVERT (
+										VARCHAR (7),
+										REPLY_CreateTime,
+										102
+									) AS timefile,
+									ASK_QuesID,
+									ASK_DoctorID
+								FROM
+									dbo.ZiXun_reply
+								WHERE
+									REPLY_UserType = 1 @suchmonth
+							) AS l
+						GROUP BY
+							ask_quesid
+					) AS t1
+				LEFT JOIN ZiXun_QuesMain AS t2 ON t1.ASK_QuesID = t2.QUESMAIN_ID
+			) AS t3
+		WHERE
+			t3.QD_SourceType = 1 @docid
+		GROUP BY
+			t3.ask_doctorid
+	) AS yy1
+FULL OUTER JOIN 
+(
+	SELECT
+		t3.ask_doctorid AS docid,
+		COUNT (t3.ask_doctorid) AS num
+	FROM
+		(
+			SELECT
+				t1.*, t2.QD_SourceType,
+				t2.QD_DocFreeID
+			FROM
+				(
+					SELECT
+						ask_quesid,
+						MAX (ask_doctorid) AS ask_doctorid,
+						MAX (timefile) AS timefile
+					FROM
+						(
+							SELECT
+								CONVERT (
+									VARCHAR (7),
+									REPLY_CreateTime,
+									102
+								) AS timefile,
+								ASK_QuesID,
+								ASK_DoctorID
+							FROM
+								dbo.ZiXun_reply
+							WHERE
+								REPLY_UserType = 1 @suchmonth
+						) AS l
+					GROUP BY
+						ask_quesid
+				) AS t1
+			LEFT JOIN ZiXun_QuesMain AS t2 ON t1.ASK_QuesID = t2.QUESMAIN_ID
+		) AS t3
+	WHERE
+		t3.QD_SourceType = 0
+	AND t3.QD_DocFreeID > 0 @docid
+	GROUP BY
+		t3.ask_doctorid
+) AS yy2 ON yy1.docid = yy2.docid 
+FULL OUTER JOIN 
+(
+	SELECT
+		t3.ask_doctorid AS docid,
+		COUNT (t3.ask_doctorid) AS num
+	FROM
+		(
+			SELECT
+				t1.*, t2.QD_SourceType
+			FROM
+				(
+					SELECT
+						ask_quesid,
+						MAX (ask_doctorid) AS ask_doctorid,
+						MAX (timefile) AS timefile
+					FROM
+						(
+							SELECT
+								CONVERT (
+									VARCHAR (7),
+									REPLY_CreateTime,
+									102
+								) AS timefile,
+								ASK_QuesID,
+								ASK_DoctorID
+							FROM
+								dbo.ZiXun_reply
+							WHERE
+								REPLY_UserType = 1 @suchday
+						) AS l
+					GROUP BY
+						ask_quesid
+				) AS t1
+			LEFT JOIN ZiXun_QuesMain AS t2 ON t1.ASK_QuesID = t2.QUESMAIN_ID
+		) AS t3
+	WHERE
+		t3.QD_SourceType = 1 @docid
+	GROUP BY
+		t3.ask_doctorid
+) AS yy3 ON yy1.docid = yy3.docid 
+FULL OUTER JOIN (
+	SELECT
+		t3.ask_doctorid AS docid,
+		COUNT (t3.ask_doctorid) AS num
+	FROM
+		(
+			SELECT
+				t1.*, t2.QD_SourceType,
+				t2.QD_DocFreeID
+			FROM
+				(
+					SELECT
+						ask_quesid,
+						MAX (ask_doctorid) AS ask_doctorid,
+						MAX (timefile) AS timefile
+					FROM
+						(
+							SELECT
+								CONVERT (
+									VARCHAR (7),
+									REPLY_CreateTime,
+									102
+								) AS timefile,
+								ASK_QuesID,
+								ASK_DoctorID
+							FROM
+								dbo.ZiXun_reply
+							WHERE
+								REPLY_UserType = 1 @suchday
+						) AS l
+					GROUP BY
+						ask_quesid
+				) AS t1
+			LEFT JOIN ZiXun_QuesMain AS t2 ON t1.ASK_QuesID = t2.QUESMAIN_ID
+		) AS t3
+	WHERE
+		t3.QD_SourceType = 0
+	AND t3.QD_DocFreeID > 0 @docid
+	GROUP BY
+		t3.ask_doctorid
+) AS yy4 ON yy1.docid = yy4.docid
+		
+	</Sql>
+	
+	
+  </Sqls>
+</das-client>

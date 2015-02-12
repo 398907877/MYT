@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryConsWaterFollowCountByCondition">
+		SELECT count (*) FROM MYT_ConsWaterFollow where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryConsWaterFollowListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by waterFollowID desc) rowId,* FROM MYT_ConsWaterFollow where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertConsWaterFollow">	INSERT INTO MYT_ConsWaterFollow(consWaterID,follwType,follwResult,inputUserID,inputUserName,inputTime)VALUES(?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateConsWaterFollowByCondition">		UPDATE MYT_ConsWaterFollow SET @condition WHERE waterFollowID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

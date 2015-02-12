@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryUserFreeCountCountByCondition">
+		SELECT count (*) FROM ZiXun_UserFreeCount  where 1=1 @condition and endTime > GETDATE()
+	</Sql>
+	<Sql name="qUserFreeCount">
+		SELECT count (*) FROM ZiXun_UserFreeCount  where 1=1 @condition 
+	</Sql>
+	 <!--查询是否存在 占用 -->
+	    <Sql name="queryUserGetFree">
+		  SELECT   u.*
+		  FROM      ZiXun_UserFreeCount AS u
+		            LEFT JOIN dbo.ZiXun_DoctorFreeCount AS d ON u.dfcId = d.dfcId
+		  WHERE     1 = 1
+					@condition 	
+		            AND d.endTime > GETDATE()
+		            AND u.expirationTime > GETDATE()
+		            AND u.endTime >GETDATE()
+		            AND CONVERT(CHAR(10), u.beginTime, 120)  = CONVERT(CHAR(10), GETDATE(), 120)
+		  </Sql>
+		  <!-- 是否已经咨询过该医生 -->
+	    <Sql name="queryUserGetFreeCount">
+		  SELECT    COUNT(*)
+		  FROM      ZiXun_UserFreeCount AS u
+		            LEFT JOIN dbo.ZiXun_DoctorFreeCount AS d ON u.dfcId = d.dfcId
+		  WHERE     1 = 1
+					@condition 	
+		            AND d.endTime > GETDATE()
+		            AND CONVERT(CHAR(10), u.beginTime, 120)  = CONVERT(CHAR(10), GETDATE(), 120)
+		  </Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryUserFreeCountListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by dfcId,ufcId desc) rowId,* FROM ZiXun_UserFreeCount  where 1=1 @condition  and endTime > GETDATE()    AND expirationTime > GETDATE() ) as a where 1=1 @page
+	</Sql>
+	 <Sql name="queryUserFreeListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by dfcId,ufcId desc) rowId,* FROM ZiXun_UserFreeCount  where 1=1 @condition    AND expirationTime > GETDATE() ) as a where 1=1 @page
+	</Sql>
+	<Sql name="queryUserFreeOverList">
+	SELECT  *
+		FROM    ( SELECT    ROW_NUMBER() OVER ( ORDER BY dfcId, ufcId DESC ) rowId ,
+		                    *
+		          FROM      ZiXun_UserFreeCount
+		          WHERE     1 = 1
+		          @condition 
+		                    AND GETDATE() > expirationTime
+		                    AND endTime > GETDATE()
+		                    AND CONVERT(CHAR(10), beginTime, 120)  = CONVERT(CHAR(10), GETDATE(), 120)
+		                    
+		        ) AS a
+		WHERE   1 = 1
+		 @page
+			</Sql>
+	
+    <!--插入 -->
+    <Sql name="insertUserFreeCount">	INSERT INTO ZiXun_UserFreeCount (ufcId,userId,dfcId,beginTime,endTime,expirationTime)VALUES(?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateUserFreeCountByCondition">		UPDATE ZiXun_UserFreeCount  SET @condition WHERE dfcId = ? and ufcId = ?    and endTime > GETDATE()
+	</Sql>
+  </Sqls>
+</das-client>

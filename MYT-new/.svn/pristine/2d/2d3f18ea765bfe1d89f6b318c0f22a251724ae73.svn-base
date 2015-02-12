@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryQuesClickCountByCondition">
+		SELECT count (*) FROM ZiXun_QuesClick where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryQuesClickListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by QUESCLICK_ID desc) rowId,* FROM ZiXun_QuesClick where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertQuesClick">	INSERT INTO ZiXun_QuesClick(QUESCLICK_ID,QUESCLICK_ClickCount,ASK_QuesID,QUESCLICK_Status,QUESCLICK_CreateTime)VALUES(?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateQuesClickByCondition">		UPDATE ZiXun_QuesClick SET @condition WHERE QUESCLICK_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

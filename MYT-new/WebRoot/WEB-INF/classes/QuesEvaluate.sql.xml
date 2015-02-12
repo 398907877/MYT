@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryQuesEvaluateCountByCondition">
+		SELECT count (*) FROM ZiXun_QuesEvaluate where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryQuesEvaluateListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ELT_ID desc) rowId,* FROM ZiXun_QuesEvaluate where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertQuesEvaluate">	INSERT INTO ZiXun_QuesEvaluate(ELT_ID,ASK_QuesID,ASK_UserID,ASK_DoctorID,QD_Ating,ELT_Content,ELT_CRTime,ELT_isSysEva)VALUES(?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateQuesEvaluateByCondition">		UPDATE ZiXun_QuesEvaluate SET @condition WHERE ELT_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

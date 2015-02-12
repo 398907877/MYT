@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryCheckRecordCountByCondition">
+		SELECT count (*) FROM ZiXun_CheckRecord where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryCheckRecordListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by CR_ID desc) rowId,* FROM ZiXun_CheckRecord where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertCheckRecord">	INSERT INTO ZiXun_CheckRecord(CR_ID,CR_CreateTime,CR_OperatorID,CR_OperatorName,CR_ObjectID,CR_Operator,CR_Type)VALUES(?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateCheckRecordByCondition">		UPDATE ZiXun_CheckRecord SET @condition WHERE CR_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

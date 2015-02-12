@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryWebLettersCountByCondition">
+		SELECT count (*) FROM ZiXun_WebLetters where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryWebLettersListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by WL_ID desc) rowId,* FROM ZiXun_WebLetters where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertWebLetters">	INSERT INTO ZiXun_WebLetters(WL_ID,WL_CreateTime,WL_SendID,WL_SendName,WL_Title,WL_SubTitle,WL_Content,WL_RightLevel,WL_LinkUrl,WL_ContentType,WL_SendUserType,WL_ParentID)VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateWebLettersByCondition">		UPDATE ZiXun_WebLetters SET @condition WHERE WL_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

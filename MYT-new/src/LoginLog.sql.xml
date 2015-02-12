@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryLoginLogCountByCondition">
+		SELECT count (*) FROM ZiXun_LoginLog where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryLoginLogListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by LOGINLOG_ID desc) rowId,* FROM ZiXun_LoginLog where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertLoginLog">	INSERT INTO ZiXun_LoginLog(LOGINLOG_ID,LOGINLOG_UserID,LOGINLOG_Status,LOGINLOG_Type,LOGINLOG_CreateTime,LOGINLOG_IP)VALUES(?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateLoginLogByCondition">		UPDATE ZiXun_LoginLog SET @condition WHERE LOGINLOG_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

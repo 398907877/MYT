@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryAssayResultMainCountByCondition">
+		SELECT count (*) FROM ZiXun_AssayResultMain where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryAssayResultMainListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ARM_ID desc) rowId,* FROM ZiXun_AssayResultMain where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertAssayResultMain">	INSERT INTO ZiXun_AssayResultMain(ARM_ID,ARM_OperatorID,ASK_QuesID,ARM_QuesType,ARM_CreateTime,ARM_Order,ARM_Status,ARM_CensorTime,ARM_HospitalName,ARM_Remark,ARM_Name,ARM_AliasName,AT_ID)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateAssayResultMainByCondition">		UPDATE ZiXun_AssayResultMain SET @condition WHERE ARM_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

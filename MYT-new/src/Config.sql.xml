@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryConfigCountByCondition">
+		SELECT count (*) FROM ZiXun_Config where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryConfigListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by CONFIG_ID desc) rowId,* FROM ZiXun_Config where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertConfig">	INSERT INTO ZiXun_Config(CONFIG_ID,CONFIG_Key,CONFIG_Value,CONFIG_Status,CONFIG_CreateTime)VALUES(?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateConfigByCondition">		UPDATE ZiXun_Config SET @condition WHERE CONFIG_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

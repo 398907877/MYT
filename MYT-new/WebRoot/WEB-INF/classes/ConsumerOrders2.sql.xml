@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryConsumerOrders2CountByCondition">
+		SELECT count (*) FROM ZiXun_ConsumerOrders2 where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryConsumerOrders2ListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by CO_ID desc) rowId,* FROM ZiXun_ConsumerOrders2 where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertConsumerOrders2">	INSERT INTO ZiXun_ConsumerOrders2(CO_ID,ASK_UserID,CO_OrderNumber,ASK_DoctorID,CO_CreateTime,CO_Price,CO_Status,ASK_QuesID,ASK_Content,ASK_QuesType,CO_SettleTime,ASK_DeptID,CO_AskType,feeTemplateId)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateConsumerOrders2ByCondition">		UPDATE ZiXun_ConsumerOrders2 SET @condition WHERE CO_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

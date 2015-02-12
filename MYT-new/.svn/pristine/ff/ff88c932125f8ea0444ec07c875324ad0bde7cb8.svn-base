@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDoctorInviteSMSCountByCondition">
+		SELECT count (*) FROM ZiXun_DoctorInviteSMS where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDoctorInviteSMSListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by ID desc) rowId,* FROM ZiXun_DoctorInviteSMS where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDoctorInviteSMS">	INSERT INTO ZiXun_DoctorInviteSMS(ID,DISMS_CreateTime,DISMS_Title,DISMS_Content,DISMS_Status,DISMS_Type,DISMS_SendTEL,DISMS_SendID,DISMS_ReceiveTEL,DISMS_ReceiveID)VALUES(?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDoctorInviteSMSByCondition">		UPDATE ZiXun_DoctorInviteSMS SET @condition WHERE ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

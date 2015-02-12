@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryUserDetailCountByCondition">
+		SELECT count (*) FROM ZiXun_UserDetail where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryUserDetailListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by UD_ID desc) rowId,* FROM ZiXun_UserDetail where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertUserDetail">	INSERT INTO ZiXun_UserDetail(UD_ID,ASK_Type,ASK_AccountID,UD_Status,UD_LastLoginTime,UD_LastLoginIP,UD_LoginCount)VALUES(?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateUserDetailByCondition">		UPDATE ZiXun_UserDetail SET @condition WHERE UD_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryConsphoneCountByCondition">
+		SELECT count (*) FROM MYT_consphone where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryConsphoneListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by consphoneid desc) rowId,* FROM MYT_consphone where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertConsphone">	INSERT INTO MYT_consphone(consphoneid,doctorid,consphone,state,opertime)VALUES(?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateConsphoneByCondition">		UPDATE MYT_consphone SET @condition WHERE consphoneid = ? 
+	</Sql>
+  </Sqls>
+</das-client>

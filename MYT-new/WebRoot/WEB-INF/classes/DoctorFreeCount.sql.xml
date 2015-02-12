@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+	<Sqls>
+		<!--查询记录数 -->
+		<Sql name="queryDoctorFreeCountCountByCondition">
+			SELECT count (*) FROM ZiXun_DoctorFreeCount where 1=1
+			@condition and
+			endTime > GETDATE()
+			and expirationTime >  GETDATE()
+		</Sql>
+    <!--根据条件分页查询记录 -->
+		<Sql name="queryDoctorFreeCountListByCondition">
+
+			SELECT * from (SELECT ROW_NUMBER() OVER( order by dfcId desc) rowId,*
+			FROM ZiXun_DoctorFreeCount where 1=1 @condition and endTime > GETDATE() )
+			as a where 1=1 @page
+		</Sql>
+		<Sql name="queryDoctorFreeCountList">
+			SELECT ROW_NUMBER() OVER ( ORDER BY dC.dfcId DESC ) rowId , * FROM
+			ZiXun_DoctorFreeCount AS dC WHERE NOT EXISTS ( SELECT * FROM ( SELECT
+			doctorUid FROM ZiXun_UserFreeCount AS u INNER JOIN
+			dbo.ZiXun_DoctorFreeCount AS d ON u.dfcId = d.dfcId WHERE 1 = 1 AND
+			u.ifOver = 1 AND CONVERT(CHAR(10), u.beginTime, 120) =
+			CONVERT(CHAR(10), GETDATE() , 120)
+			@condition
+			) d1 WHERE dc.doctorUid =
+			d1.doctorUid )
+			AND ( ( dc.remainFreeCount > 0
+                AND CONVERT(CHAR(10), dc.lastChangeTime, 120) = CONVERT(CHAR(10), GETDATE(), 120)
+              )
+              OR ( dc.freeCount > 0
+                    AND CONVERT(CHAR(10),  GETDATE(), 120) > CONVERT(CHAR(10), dc.lastChangeTime, 120)
+                 )
+            )
+			and DoctorUid in 
+			 @page
+		</Sql>
+		<!--插入 -->
+		<Sql name="insertDoctorFreeCount"> INSERT INTO ZiXun_DoctorFreeCount
+			(dfcId,doctorUid,freeCount,remainFreeCount,occupyFreeCount,lastUpdateTime,lastChangeTime,beginTime,endTime)VALUES(?,?,?,?,?,?,?,?,?)
+		</Sql>
+    <!--根据条件更新 -->
+		<!--update sql -->
+		<Sql name="updateDoctorFreeCountByCondition"> UPDATE ZiXun_DoctorFreeCount SET @condition WHERE dfcId
+			= ?
+		</Sql>
+		<Sql name="updateDoctorFreeCountInitialization"> UPDATE ZiXun_DoctorFreeCount SET remainFreeCount = freeCount 
+		</Sql>
+		
+	</Sqls>
+</das-client>

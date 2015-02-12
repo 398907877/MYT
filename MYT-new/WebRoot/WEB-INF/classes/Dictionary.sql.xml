@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryDictionaryCountByCondition">
+		SELECT count (*) FROM ZiXun_Dictionary where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryDictionaryListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by DICT_ID desc) rowId,* FROM ZiXun_Dictionary where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertDictionary">	INSERT INTO ZiXun_Dictionary(DICT_ID,DICT_TypeName,DICT_TypeCode,DICT_Key,DICT_Value,DICT_Order,DICT_Status,DICT_CreateTime)VALUES(?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateDictionaryByCondition">		UPDATE ZiXun_Dictionary SET @condition WHERE DICT_ID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryOperconfigCountByCondition">
+		SELECT count (*) FROM MYT_OPERCONFIG where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryOperconfigListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by OPERCONFID desc) rowId,* FROM MYT_OPERCONFIG where 1=1 @condition ) as a where 1=1 @page
+	</Sql>
+    <!--插入 -->
+    <Sql name="insertOperconfig">	INSERT INTO MYT_OPERCONFIG(OPERCONFID,DOCTORID,SEVENDOCTORID,TENDOCTORID,REALNAME,DOCTORNAME,HOSPOFFICEID,HOSPOFFICENAME,DOCTORSTAR,DOCTORIDIOM,DOCTORLEVEL,PAYTYPE,BALANCETYPE,SENDTYPE,BANKNAME,BANKID,ACCOUNTNAME,OPERATORID,OPERATORNAME,OPERTIME,ORGID,CITYID,STATE,REMARK,ISPAYDOCTOR,HEAPCASH,YiHustatus,YiHuCommend,Doctorsn,DoctorUid,OPERCONFID_Bak)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateOperconfigByCondition">		UPDATE MYT_OPERCONFIG SET @condition WHERE OPERCONFID = ? 
+	</Sql>
+  </Sqls>
+</das-client>

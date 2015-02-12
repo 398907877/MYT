@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<das-client>
+  <Sqls>
+    <!--查询记录数-->
+    <Sql name="queryReplyCountByCondition">
+		SELECT count (*) FROM ZiXun_Reply where 1=1 @condition
+	</Sql>
+    <!--根据条件分页查询记录 -->
+     <Sql name="queryReplyListByCondition">
+		SELECT * from (SELECT ROW_NUMBER() OVER( order by REPLY_CheckTime desc) rowId,* FROM ZiXun_Reply where 1=1 @condition ) as a where 1=1 @page order by  REPLY_CheckTime asc
+	</Sql>
+
+	
+	 <Sql name="queryReplyLastOne">
+		SELECT TOP 1 * FROM dbo.ZiXun_Reply WHERE ASK_QuesID = ? AND REPLY_UserType = 1 ORDER BY REPLY_CheckTime DESC 
+		</Sql>
+    <!--插入 -->
+    <Sql name="insertReply">	INSERT INTO ZiXun_Reply(REPLY_ID,REPLY_CreateTime,REPLY_Status,ASK_QuesID,REPLY_Content,REPLY_CheckStatus,REPLY_CheckTime,REPLY_Reason,REPLY_CheckManID,REPLY_CheckManName,ASK_UserID,ASK_DoctorID,REPLY_UserType,REPLY_IsLook,REPLY_Price,REPLY_FilesCount,REPLY_Type,REPLY_Platform,REPLY_ContentType)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	</Sql>
+    <!--根据条件更新 -->
+    <!--update sql-->
+     <Sql name="updateReplyByCondition">		UPDATE ZiXun_Reply SET @condition WHERE REPLY_ID = ? 
+	</Sql>
+	<Sql name="getYestodayReplyCount">
+			<!-- SELECT  COUNT(*) as replycount,
+			        ASK_DoctorID as doctoruid,
+			         CONVERT(CHAR(10), rp1.firstReplyTime, 120)
+			FROM    (SELECT    MIN(REPLY_CreateTime) firstReplyTime ,
+		                    ASK_DoctorID,ASK_QuesID
+		          FROM      dbo.ZiXun_reply AS r1
+		                    LEFT JOIN ( SELECT  QUESMAIN_ID ,
+		                                        QD_SourceType
+		                                FROM    ZiXun_QuesMain
+		                                WHERE   QD_SourceType = 1
+		                              ) AS q1 ON r1.ASK_QuesID = q1.QUESMAIN_ID
+		          WHERE     REPLY_UserType = 1
+		                    AND q1.QUESMAIN_ID IS NOT NULL
+		          GROUP BY  ASK_DoctorID,ASK_QuesID
+			        ) AS rp1
+			WHERE   CONVERT(CHAR(10), rp1.firstReplyTime, 120) = CONVERT(CHAR(10), GETDATE()-1
+			        , 120)
+			GROUP BY ASK_DoctorID --> 
+			SELECT * ,CONVERT(CHAR(10), GETDATE()-1
+			        , 120) theday FROM (
+SELECT  COUNT(*) as replycount,
+			        ASK_DoctorID as doctoruid 
+			FROM    (SELECT    MIN(REPLY_CreateTime) firstReplyTime ,
+		                    ASK_DoctorID,ASK_QuesID
+		          FROM      dbo.ZiXun_reply AS r1
+		                    LEFT JOIN ( SELECT  QUESMAIN_ID ,
+		                                        QD_SourceType
+		                                FROM    ZiXun_QuesMain
+		                                WHERE   QD_SourceType = 1
+		                              ) AS q1 ON r1.ASK_QuesID = q1.QUESMAIN_ID
+		          WHERE     REPLY_UserType = 1
+		                    AND q1.QUESMAIN_ID IS NOT NULL
+		          GROUP BY  ASK_DoctorID,ASK_QuesID
+			        ) AS rp1
+			WHERE   CONVERT(CHAR(10), rp1.firstReplyTime, 120) = '2014-12-30'
+			GROUP BY ASK_DoctorID) as t2
+	</Sql>
+  </Sqls>
+</das-client>

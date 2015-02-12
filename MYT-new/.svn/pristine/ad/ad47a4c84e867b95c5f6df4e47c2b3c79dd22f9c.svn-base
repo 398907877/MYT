@@ -1,0 +1,4 @@
+package com.yihu.myt.dao;import java.util.List;import com.coreframework.db.DB;import com.coreframework.db.JdbcConnection;import com.coreframework.db.Sql;import com.yihu.myt.enums.DepAndDisSqlNameEnum;import com.yihu.myt.enums.MyDatabaseEnum;import com.yihu.myt.vo.DepAndDisVo;
+public class DepAndDisDAO {
+	/**	*Ìí¼Ó	*/	public void insertDepAndDis(DepAndDisVo vo,JdbcConnection conn) throws Exception{		Sql sql = DB.me().createSql(DepAndDisSqlNameEnum.insertDepAndDis);				sql.addParamValue(vo.getDocId());		sql.addParamValue(vo.getDocName());		sql.addParamValue(vo.getDepartMent());		sql.addParamValue(vo.getDisease());		DB.me().insert(conn, sql);		}
+}
